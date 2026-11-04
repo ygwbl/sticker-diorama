@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>造景贴纸小憩 · Sticker Diorama</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* 移动端防误触与无滚动防抖 */
     * {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
@@ -17,192 +15,277 @@
     body {
       touch-action: pan-x pan-y;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background-color: #f3ece2;
+      background-color: #2b2520;
+      background-image: radial-gradient(#3a322c 1px, transparent 1px);
+      background-size: 24px 24px;
     }
+    /* 核心舞台防误触与无抖动 */
     .canvas-container {
       touch-action: none;
     }
-    /* 贴纸拟真边缘投影与反光 */
-    .sticker-item {
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.16)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
-      transition: filter 0.15s ease, transform 0.15s ease;
+    /* 拟真贴纸质感与物理悬浮 */
+    .sticker-element {
+      touch-action: none;
       transform-origin: center center;
+      transition: filter 0.15s cubic-bezier(0.2, 0.9, 0.3, 1);
+      cursor: grab;
     }
-    .sticker-item:active, .sticker-item.dragging {
-      filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
-      transform: scale(1.06);
+    .sticker-element:active, .sticker-element.is-dragging {
+      cursor: grabbing;
+      filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.35)) drop-shadow(0 8px 10px rgba(0, 0, 0, 0.22)) !important;
+      z-index: 9999 !important;
     }
-    /* 托盘贴纸动画 */
-    .tray-sticker {
+    /* 贴纸册撕纸反光质感 */
+    .sticker-foil-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,245,240,0.85) 100%);
+      box-shadow: 0 3px 8px rgba(74, 53, 35, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
       transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .tray-sticker:hover {
-      transform: translateY(-3px) scale(1.03);
+    .sticker-foil-card:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 16px rgba(74, 53, 35, 0.14);
     }
-    .tray-sticker:active {
+    .sticker-foil-card:active {
       transform: scale(0.92);
     }
-    /* 选中框 */
-    .selection-ring {
-      border: 2px dashed #e27d60;
-      background: rgba(226, 125, 96, 0.06);
+    /* 选框控制点 */
+    .selection-box {
+      border: 2px dashed #f97316;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.7), inset 0 0 15px rgba(249, 115, 22, 0.08);
+      pointer-events: none;
+    }
+    .handle-pin {
+      pointer-events: auto;
+      touch-action: none;
+      transition: transform 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .handle-pin:active {
+      transform: scale(1.25);
     }
     /* 隐藏滚动条 */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* 纸张微孔与纹理阴影 */
+    .paper-texture {
+      background-color: #faf6f0;
+      background-image: radial-gradient(rgba(140, 115, 90, 0.08) 1px, transparent 0);
+      background-size: 8px 8px;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-start p-1 sm:p-4 text-[#4a3f35]">
+<body class="min-h-screen flex flex-col items-center justify-start p-0 sm:p-4 text-[#4a3f35] overflow-hidden">
 
-  <!-- 移动端外壳容器 (以经典手机比例居中呈现) -->
-  <div class="w-full max-w-[430px] flex flex-col h-[96vh] max-h-[890px] bg-[#faf6f0] rounded-3xl shadow-2xl border border-[#e5d8c6] overflow-hidden">
+  <!-- 移动端拟真手账外壳容器 (手机全屏 / 电脑优雅卡片) -->
+  <div class="w-full max-w-[430px] flex flex-col h-screen sm:h-[96vh] sm:max-h-[920px] bg-[#faf6f0] sm:rounded-3xl shadow-2xl border border-[#d8c8b5] overflow-hidden relative">
     
-    <!-- 顶部状态栏与快捷工具栏 -->
-    <header class="px-3.5 py-2.5 bg-[#f2e9dc] border-b border-[#e2d5c3] flex items-center justify-between shrink-0">
+    <!-- 顶部状态与沉浸氛围音栏 -->
+    <header class="px-3.5 py-2.5 bg-[#f0e6d6] border-b border-[#dfd0bd] flex items-center justify-between shrink-0 z-30">
       <div class="flex items-center gap-2">
         <span class="text-xl">🪴</span>
         <div>
-          <h1 class="font-bold text-sm tracking-tight text-[#4a3a2a]">造景贴纸小憩</h1>
-          <p class="text-[10px] text-[#8c7a68]">Grok AI 精绘微缩场景</p>
+          <h1 class="font-bold text-sm tracking-tight text-[#423223]">造景贴纸小憩</h1>
+          <p class="text-[10px] text-[#85705d] flex items-center gap-1 font-medium">
+            <span>沉浸式微缩空间</span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          </p>
         </div>
       </div>
       
       <div class="flex items-center gap-1.5">
-        <!-- 音效开关 -->
-        <button id="soundToggleBtn" class="p-2 rounded-xl bg-white/80 border border-[#dfd2be] text-[#6d5a47] active:scale-95 transition-all text-xs" title="音效开关">
-          🔊
+        <!-- 沉浸式环境音效切换 (细雨/壁炉/Lofi/静音) -->
+        <button id="ambientAudioBtn" class="px-2.5 py-1.5 rounded-xl bg-white/90 border border-[#d8c8b5] text-[#5c4a39] active:scale-95 transition-all text-xs flex items-center gap-1 font-medium shadow-xs" title="环境白噪音与治愈旋律">
+          <span id="ambientIcon">🌧️</span>
+          <span id="ambientText" class="text-[11px]">雨声</span>
         </button>
+
+        <!-- ✨ AI 贴纸定制工坊入口 -->
+        <button id="openAiWorkshopBtn" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-[#e76f51] to-[#f4a261] text-white active:scale-95 transition-all text-xs font-semibold flex items-center gap-1 shadow-xs" title="使用 Grok 实时绘制专属贴纸">
+          <span>🔮</span>定制
+        </button>
+
         <!-- 灵感预设 -->
-        <button id="presetBtn" class="px-2.5 py-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#6d5a47] active:scale-95 transition-all text-xs font-medium flex items-center gap-1" title="一键铺满预设灵感">
-          <span>💡</span>灵感
+        <button id="presetBtn" class="p-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#6d5a47] active:scale-95 transition-all text-xs" title="一键灵感搭配">
+          💡
         </button>
+
         <!-- 清空重置 -->
-        <button id="clearBtn" class="px-2.5 py-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#b34a4a] active:scale-95 transition-all text-xs font-medium" title="清空画板">
-          清空
+        <button id="clearBtn" class="p-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#b34a4a] active:scale-95 transition-all text-xs" title="清空房间">
+          🗑️
         </button>
-        <!-- 导出壁纸 -->
-        <button id="exportBtn" class="px-3 py-1.5 rounded-xl bg-[#d97d54] text-white shadow-sm active:scale-95 transition-all text-xs font-medium flex items-center gap-1">
+
+        <!-- 保存海报 -->
+        <button id="exportBtn" class="px-3 py-1.5 rounded-xl bg-[#d97d54] text-white shadow-sm active:scale-95 transition-all text-xs font-semibold flex items-center gap-1">
           <span>📸</span>保存
         </button>
       </div>
     </header>
 
-    <!-- 场景切换胶囊栏 -->
-    <div class="px-3 py-2 bg-[#f7f2ea] flex items-center justify-between border-b border-[#ebdccb] shrink-0">
-      <span class="text-[11px] font-medium text-[#7d6b58] shrink-0">切换房间：</span>
-      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <button data-scene="sunset" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-[#d97d54] text-white shadow-xs">
+    <!-- 场景切换轮播胶囊栏 (6 款多风格精美场景) -->
+    <div class="px-3 py-2 bg-[#f8f3eb] flex items-center justify-between border-b border-[#e8dbca] shrink-0 z-20">
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full py-0.5">
+        <button data-scene="sunset" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-[#d97d54] text-white shadow-xs">
           🌅 日落书房
         </button>
-        <button data-scene="greenhouse" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]">
+        <button data-scene="bakery" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]">
+          🥖 日式面包房
+        </button>
+        <button data-scene="greenhouse" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]">
           🌿 阳光温室
         </button>
-        <button data-scene="night" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]">
+        <button data-scene="fireplace" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]">
+          🪵 壁炉木屋
+        </button>
+        <button data-scene="garden" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]">
+          🌺 花房露台
+        </button>
+        <button data-scene="night" class="scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]">
           🌙 治愈猫窝
         </button>
       </div>
     </div>
 
-    <!-- 核心造景画板区 -->
-    <main class="relative flex-1 bg-[#eae0d2] overflow-hidden flex items-center justify-center p-2">
+    <!-- 核心微缩场景画板区 (60fps丝滑触控 + 丁达尔微尘光影) -->
+    <main class="relative flex-1 bg-[#231d18] overflow-hidden flex items-center justify-center p-2 sm:p-3">
       <!-- 场景底板 (支持保存截屏) -->
-      <div id="sceneStage" class="canvas-container relative w-full h-full max-h-[460px] rounded-2xl shadow-inner overflow-hidden border-2 border-[#dfd0bd] select-none bg-cover bg-center">
-        <!-- 场景背景图层 (优先使用 Grok 渲染的背景图) -->
-        <div id="sceneBackground" class="absolute inset-0 pointer-events-none transition-all duration-500 bg-cover bg-center">
+      <div id="sceneStage" class="canvas-container relative w-full h-full max-h-[480px] rounded-2xl shadow-2xl overflow-hidden border-2 border-[#54463a] select-none bg-cover bg-center">
+        
+        <!-- 背景大图层 -->
+        <div id="sceneBackground" class="absolute inset-0 pointer-events-none transition-all duration-700 bg-cover bg-center">
         </div>
 
-        <!-- 贴纸活动容器 -->
-        <div id="stickerCanvas" class="absolute inset-0 overflow-hidden">
-          <!-- 放置的贴纸将动态插入这里 -->
+        <!-- 动态丁达尔飘浮光影与微尘 Canvas -->
+        <canvas id="ambientDustCanvas" class="absolute inset-0 pointer-events-none opacity-60 z-10"></canvas>
+
+        <!-- 贴纸物理摆放容器 -->
+        <div id="stickerCanvas" class="absolute inset-0 overflow-hidden z-20">
+          <!-- 贴纸元素动态插入 -->
         </div>
 
-        <!-- 空状态操作指引 -->
-        <div id="emptyHint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-6 transition-opacity duration-300">
-          <div class="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-2xl shadow-sm mb-2 animate-bounce">
+        <!-- 空白提示层 -->
+        <div id="emptyHint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-6 transition-opacity duration-300 z-30">
+          <div class="w-12 h-12 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-2xl shadow-lg mb-2 animate-bounce">
             👇
           </div>
-          <p class="text-xs font-medium text-[#6e5843] bg-white/80 backdrop-blur-xs px-3 py-1.5 rounded-full shadow-sm">
-            点击下方贴纸撕下，或拖拽摆放你的小屋
+          <p class="text-xs font-medium text-[#4a3726] bg-white/90 backdrop-blur-sm px-3.5 py-1.5 rounded-full shadow-md border border-white/60">
+            从下方贴纸册撕下贴纸，单指拖拽、双指缩放旋转
           </p>
         </div>
 
-        <!-- 当前选中贴纸的快捷悬浮工具栏 (移动端拇指操作) -->
-        <div id="floatingToolbar" class="absolute bottom-2 left-1/2 -translate-x-1/2 hidden bg-[#3b322a]/92 backdrop-blur-md text-white rounded-2xl px-3 py-1.5 shadow-2xl flex items-center gap-2.5 z-50 text-xs border border-white/20">
-          <button id="actFlip" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
-            <span>🪞</span>翻转
-          </button>
-          <div class="w-[1px] h-4 bg-white/20"></div>
-          <button id="actLayerUp" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
-            <span>⬆️</span>上移
-          </button>
-          <button id="actLayerDown" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
-            <span>⬇️</span>下移
-          </button>
-          <div class="w-[1px] h-4 bg-white/20"></div>
-          <button id="actRotateLeft" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
-            <span>↺</span>-15°
-          </button>
-          <button id="actRotateRight" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
-            <span>↻</span>+15°
-          </button>
-          <div class="w-[1px] h-4 bg-white/20"></div>
-          <button id="actDelete" class="p-1 text-red-300 hover:text-red-400 active:scale-90 flex flex-col items-center text-[10px]">
-            <span>🗑️</span>撕掉
-          </button>
+        <!-- 悬浮快速操控手柄 (贴纸四周 4 颗高灵敏度按键) -->
+        <div id="activeControlsOverlay" class="absolute inset-0 pointer-events-none hidden z-40">
+          <div id="selectionBox" class="selection-box absolute rounded-2xl">
+            <!-- 左上角：水平镜像翻转 -->
+            <button id="pinFlip" class="handle-pin absolute -top-3.5 -left-3.5 w-7 h-7 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-xs font-bold border border-[#d8c8b5]" title="翻转">
+              🪞
+            </button>
+            <!-- 右上角：删除撕掉 -->
+            <button id="pinDelete" class="handle-pin absolute -top-3.5 -right-3.5 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold border border-white/80" title="撕掉">
+              ✕
+            </button>
+            <!-- 左下角：图层置顶/下移循环 -->
+            <button id="pinLayer" class="handle-pin absolute -bottom-3.5 -left-3.5 w-7 h-7 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-xs font-bold border border-[#d8c8b5]" title="调整层级">
+              ⬆️
+            </button>
+            <!-- 右下角：单指旋转与缩放复合手柄 (极大提升移动端手感) -->
+            <div id="pinTransformHandle" class="handle-pin absolute -bottom-3.5 -right-3.5 w-7 h-7 rounded-full bg-[#f97316] text-white flex items-center justify-center text-xs font-bold border border-white/80 cursor-nwse-resize shadow-lg" title="旋转与缩放手柄">
+              🔄
+            </div>
+          </div>
         </div>
+
       </div>
     </main>
 
-    <!-- 底部贴纸册抽屉 -->
-    <footer class="bg-[#f2e9dc] border-t border-[#dfd2bf] flex flex-col shrink-0 max-h-[310px]">
+    <!-- 底部拟真贴纸册抽屉 (线圈手账本风格 + 丰富分类) -->
+    <footer class="bg-[#f0e6d6] border-t-2 border-[#dfd0bd] flex flex-col shrink-0 max-h-[300px] z-30">
       
-      <!-- 分类标签 -->
-      <div class="flex items-center gap-1 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar border-b border-[#e8dbca]">
+      <!-- 贴纸分类标签栏 -->
+      <div class="flex items-center gap-1.5 px-3 pt-2 pb-1.5 overflow-x-auto no-scrollbar border-b border-[#e2d4c2] bg-[#f7f2ea]">
         <button data-cat="all" class="cat-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white shrink-0 transition-all shadow-xs">
-          全部 (14)
+          全部
         </button>
-        <button data-cat="furniture" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
-          🛋️ 家具
+        <button data-cat="furniture" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🛋️ 家具软装
         </button>
-        <button data-cat="plants" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
-          🌿 绿植
+        <button data-cat="plants" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🌿 绿植花草
         </button>
-        <button data-cat="pets" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
-          🐱 萌宠
+        <button data-cat="pets" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🐱 治愈萌宠
         </button>
-        <button data-cat="deco" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
-          ☕ 微缩
+        <button data-cat="food" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🥐 烘焙美食
+        </button>
+        <button data-cat="deco" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          ☕ 生活微缩
+        </button>
+        <button data-cat="custom" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          ✨ 我的定制
         </button>
       </div>
 
-      <!-- 贴纸列表格 (仿真撕纸底衬) -->
-      <div id="stickersTray" class="p-2.5 grid grid-cols-4 gap-2 overflow-y-auto max-h-[220px] no-scrollbar">
-        <!-- 动态渲染贴纸卡片 -->
+      <!-- 贴纸画册网格 (卡片反光撕纸质感) -->
+      <div id="stickersTray" class="p-2.5 grid grid-cols-4 gap-2.5 overflow-y-auto max-h-[200px] no-scrollbar paper-texture">
+        <!-- 动态生成贴纸卡片 -->
       </div>
     </footer>
 
   </div>
 
-  <!-- 导出海报模态框 -->
-  <div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 🔮 Grok AI 贴纸工坊模态弹窗 (让用户随心所欲生成任何贴纸) -->
+  <div id="aiWorkshopModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col gap-4 border border-[#e5d8c7] shadow-2xl relative">
+      <button id="closeAiModalBtn" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">
+        ✕
+      </button>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xl">🔮</span>
+          <h3 class="font-bold text-base text-[#4a3b2b]">Grok AI 贴纸工坊</h3>
+        </div>
+        <p class="text-xs text-[#826f5d] mt-1">输入任何想要的物品，AI 自动为你画出白边微缩贴纸！</p>
+      </div>
+
+      <!-- 快速灵感标签 -->
+      <div class="flex flex-wrap gap-1.5">
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🍓 草莓雪顶刨冰</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🎩 戴礼帽的柯基</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">📜 复古墨水打字机</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🌸 浅粉樱花小盆景</span>
+      </div>
+
+      <!-- 输入框 -->
+      <div class="flex flex-col gap-2">
+        <input id="aiPromptInput" type="text" placeholder="例如：一只窝在茶杯里的软萌小猫咪..." class="w-full px-3.5 py-2.5 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
+        <button id="startGenerateStickerBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#e76f51] to-[#f4a261] text-white text-xs font-bold shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5">
+          <span id="genBtnSpinner" class="hidden animate-spin">⏳</span>
+          <span id="genBtnText">✨ 开始绘制专属贴纸</span>
+        </button>
+      </div>
+
+      <div id="aiGenStatus" class="text-[11px] text-center text-[#8d7966] hidden">
+        正在使用 Grok 绘制与进行透明边缘处理，请稍候约 10 秒...
+      </div>
+    </div>
+  </div>
+
+  <!-- 📸 导出海报模态框 -->
+  <div id="exportModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col items-center gap-4 border border-[#e5d8c7] shadow-2xl">
       <div class="text-center">
         <h3 class="font-bold text-base text-[#4a3b2b]">🎉 你的微缩造景已生成！</h3>
-        <p class="text-xs text-[#826f5d] mt-1">长按保存图片或点击下方下载</p>
+        <p class="text-xs text-[#826f5d] mt-1">长按图片保存或点击下方直接下载</p>
       </div>
-      <div class="w-full rounded-2xl overflow-hidden border-2 border-[#dfd0bd] shadow-md bg-white">
+      <div class="w-full rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-stone-900">
         <img id="exportPreviewImg" src="" alt="Diorama Export" class="w-full h-auto block">
       </div>
       <div class="flex items-center gap-2 w-full">
-        <button id="closeModalBtn" class="flex-1 py-2 rounded-xl bg-white border border-[#d8c8b5] text-xs font-medium text-[#6f5e4d]">
-          返回继续贴
+        <button id="closeExportModalBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-xs font-semibold text-[#6f5e4d] active:scale-95">
+          返回继续拼贴
         </button>
-        <a id="downloadLink" download="my_cozy_room.png" class="flex-1 py-2 text-center rounded-xl bg-[#d97d54] text-white text-xs font-medium shadow-sm">
+        <a id="downloadLink" download="my_cozy_diorama.png" class="flex-1 py-2.5 text-center rounded-xl bg-[#d97d54] text-white text-xs font-semibold shadow-md active:scale-95">
           📥 下载到手机
         </a>
       </div>
@@ -210,23 +293,192 @@
   </div>
 
   <script>
-    /* 1. Web Audio API 拟真撕贴 ASMR 音效 */
-    class SoundEngine {
+    /* ==========================================================================
+       1. 沉浸式环境音效 & 拟真 ASMR 声音引擎 (Web Audio API 纯自合成)
+       ========================================================================== */
+    class AudioAmbienceEngine {
       constructor() {
-        this.enabled = true;
         this.ctx = null;
+        this.currentAmbience = 'rain'; // 'rain', 'fire', 'lofi', 'mute'
+        this.ambienceNodes = [];
+        this.soundEnabled = true;
       }
+
       init() {
         if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) this.ctx = new AudioContext();
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
         }
         if (this.ctx && this.ctx.state === 'suspended') {
           this.ctx.resume();
         }
       }
+
+      // 切换环境音
+      cycleAmbience() {
+        this.init();
+        const modes = ['rain', 'fire', 'lofi', 'mute'];
+        const nextIdx = (modes.indexOf(this.currentAmbience) + 1) % modes.length;
+        this.setAmbience(modes[nextIdx]);
+      }
+
+      setAmbience(mode) {
+        this.stopAmbience();
+        this.currentAmbience = mode;
+
+        const iconEl = document.getElementById('ambientIcon');
+        const textEl = document.getElementById('ambientText');
+
+        if (mode === 'rain') {
+          iconEl.innerText = '🌧️';
+          textEl.innerText = '雨声';
+          this.startRain();
+        } else if (mode === 'fire') {
+          iconEl.innerText = '🪵';
+          textEl.innerText = '壁炉';
+          this.startFireplace();
+        } else if (mode === 'lofi') {
+          iconEl.innerText = '🎵';
+          textEl.innerText = 'Lofi';
+          this.startLofiChimes();
+        } else {
+          iconEl.innerText = '🔇';
+          textEl.innerText = '静音';
+        }
+      }
+
+      stopAmbience() {
+        this.ambienceNodes.forEach(n => {
+          try { n.stop ? n.stop() : n.disconnect(); } catch (e) {}
+        });
+        this.ambienceNodes = [];
+      }
+
+      // 雨声合成器 (白噪音 + 低通共振滤波)
+      startRain() {
+        if (!this.ctx) return;
+        try {
+          const bufferSize = this.ctx.sampleRate * 2;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
+          }
+
+          const whiteNoise = this.ctx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          whiteNoise.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 850;
+
+          const gain = this.ctx.createGain();
+          gain.gain.value = 0.08;
+
+          whiteNoise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          whiteNoise.start();
+
+          this.ambienceNodes.push(whiteNoise, filter, gain);
+        } catch (e) {}
+      }
+
+      // 壁炉柴火声 (低频暖轰鸣 + 随机噼啪脆响)
+      startFireplace() {
+        if (!this.ctx) return;
+        try {
+          const bufferSize = this.ctx.sampleRate * 2;
+          const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            output[i] = (Math.random() * 2 - 1) * 0.5;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+          noise.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 350;
+
+          const gain = this.ctx.createGain();
+          gain.gain.value = 0.12;
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          noise.start();
+          this.ambienceNodes.push(noise, filter, gain);
+
+          // 定时噼啪火星声
+          const crackleInterval = setInterval(() => {
+            if (this.currentAmbience !== 'fire' || !this.ctx) {
+              clearInterval(crackleInterval);
+              return;
+            }
+            if (Math.random() > 0.4) {
+              const osc = this.ctx.createOscillator();
+              const cGain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(600 + Math.random() * 1200, this.ctx.currentTime);
+              cGain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+              cGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+              osc.connect(cGain);
+              cGain.connect(this.ctx.destination);
+              osc.start();
+              osc.stop(this.ctx.currentTime + 0.04);
+            }
+          }, 180);
+        } catch (e) {}
+      }
+
+      // 治愈 Lofi 和弦琶音循环 (微弱柔和电钢琴音)
+      startLofiChimes() {
+        if (!this.ctx) return;
+        const chords = [
+          [261.63, 329.63, 392.00, 493.88], // Cmaj7
+          [220.00, 261.63, 329.63, 392.00], // Am7
+          [174.61, 220.00, 261.63, 329.63], // Fmaj7
+          [196.00, 246.94, 293.66, 349.23]  // G7
+        ];
+        let chordIdx = 0;
+
+        const loopInterval = setInterval(() => {
+          if (this.currentAmbience !== 'lofi' || !this.ctx) {
+            clearInterval(loopInterval);
+            return;
+          }
+          const chord = chords[chordIdx];
+          chordIdx = (chordIdx + 1) % chords.length;
+
+          chord.forEach((freq, noteIdx) => {
+            setTimeout(() => {
+              if (this.currentAmbience !== 'lofi' || !this.ctx) return;
+              try {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+
+                gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0005, this.ctx.currentTime + 1.6);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 1.6);
+              } catch (e) {}
+            }, noteIdx * 120);
+          });
+        }, 3200);
+      }
+
+      // --- 动作音效 ---
+      // 撕贴纸音效 (阻尼撕裂摩擦感)
       playPeel() {
-        if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
         try {
@@ -234,18 +486,18 @@
           const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
           const data = buffer.getChannelData(0);
           for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
           }
           const noise = this.ctx.createBufferSource();
           noise.buffer = buffer;
           const filter = this.ctx.createBiquadFilter();
           filter.type = 'bandpass';
-          filter.frequency.setValueAtTime(1400, this.ctx.currentTime);
-          filter.frequency.exponentialRampToValueAtTime(3200, this.ctx.currentTime + 0.1);
-          filter.Q.setValueAtTime(3, this.ctx.currentTime);
+          filter.frequency.setValueAtTime(1600, this.ctx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(3600, this.ctx.currentTime + 0.1);
+          filter.Q.value = 2.5;
 
           const gain = this.ctx.createGain();
-          gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.32, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
 
           noise.connect(filter);
@@ -253,21 +505,22 @@
           gain.connect(this.ctx.destination);
           noise.start();
 
-          if (navigator.vibrate) navigator.vibrate(12);
+          if (navigator.vibrate) navigator.vibrate(10);
         } catch (e) {}
       }
+
+      // 贴上去吸附音效 (水润清脆 Pop 音)
       playStick() {
-        if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
         try {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(380, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+          osc.frequency.setValueAtTime(420, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
 
-          gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.45, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
 
           osc.connect(gain);
@@ -275,105 +528,208 @@
           osc.start();
           osc.stop(this.ctx.currentTime + 0.09);
 
-          if (navigator.vibrate) navigator.vibrate([15, 20, 10]);
+          if (navigator.vibrate) navigator.vibrate([12, 20, 8]);
         } catch (e) {}
       }
-      playDelete() {
-        if (!this.enabled) return;
-        this.init();
-        if (!this.ctx) return;
-        try {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(240, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.14);
 
-          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
-
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.14);
-        } catch (e) {}
-      }
+      // 旋转与微调咔哒声
       playClick() {
-        if (!this.enabled) return;
         this.init();
         if (!this.ctx) return;
         try {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+          osc.frequency.setValueAtTime(950, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start();
-          osc.stop(this.ctx.currentTime + 0.03);
-          if (navigator.vibrate) navigator.vibrate(8);
+          osc.stop(this.ctx.currentTime + 0.025);
+          if (navigator.vibrate) navigator.vibrate(6);
         } catch (e) {}
       }
+
+      // 撕掉删除
+      playDelete() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(260, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.16);
+          gain.gain.setValueAtTime(0.28, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.16);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.16);
+        } catch (e) {}
+      }
+
+      // 翻页沙沙声
+      playPageFlip() {
+        this.playPeel();
+      }
     }
-    const sound = new SoundEngine();
 
-    /* 2. 贴纸库定义 (优先加载 assets/ 目录下的 Grok 精绘透明贴纸) */
-    const STICKER_LIBRARY = [
-      // 家具
-      { id: 'stk_sofa', cat: 'furniture', name: '复古暖黄单人沙发', img: './assets/stk_sofa.png', width: 110, height: 110 },
-      { id: 'stk_bookshelf', cat: 'furniture', name: '原木多层书架', img: './assets/stk_bookshelf.png', width: 100, height: 120 },
-      { id: 'stk_coffee_table', cat: 'furniture', name: '暖木小圆桌', img: './assets/stk_coffee_table.png', width: 85, height: 85 },
-      
-      // 绿植
-      { id: 'stk_monstera', cat: 'plants', name: '陶土盆龟背竹', img: './assets/stk_monstera.png', width: 90, height: 115 },
-      { id: 'stk_tulip', cat: 'plants', name: '玻璃瓶粉红郁金香', img: './assets/stk_tulip.png', width: 75, height: 95 },
+    const sound = new AudioAmbienceEngine();
 
-      // 萌宠
-      { id: 'stk_cat_orange', cat: 'pets', name: '熟睡卷卷橘猫', img: './assets/stk_cat_orange.png', width: 85, height: 80 },
-      { id: 'stk_shiba', cat: 'pets', name: '趴窝小柴犬', img: './assets/stk_shiba.png', width: 85, height: 75 },
-
-      // 微缩杂物
-      { id: 'stk_record_player', cat: 'deco', name: '复古黑胶唱机', img: './assets/stk_record_player.png', width: 85, height: 80 },
-      { id: 'stk_lamp', cat: 'deco', name: '暖光百褶台灯', img: './assets/stk_lamp.png', width: 75, height: 95 },
-      { id: 'stk_breakfast', cat: 'deco', name: '热拿铁与厚吐司', img: './assets/stk_breakfast.png', width: 80, height: 65 }
-    ];
-
-    /* 3. 场景背景 (Grok 精绘原画) */
+    /* ==========================================================================
+       2. 6 大场景定义 (Grok AI 原画全景)
+       ========================================================================== */
     const SCENES = {
       sunset: {
         name: '日落书房',
         bg: './assets/bg_sunset.jpg',
-        fallbackGrad: 'linear-gradient(to bottom, #f3e5d0, #deb896)'
+        dustColor: 'rgba(254, 240, 138, 0.5)'
+      },
+      bakery: {
+        name: '日式面包房',
+        bg: './assets/bg_bakery.jpg',
+        dustColor: 'rgba(254, 215, 170, 0.55)'
       },
       greenhouse: {
         name: '阳光温室',
         bg: './assets/bg_greenhouse.jpg',
-        fallbackGrad: 'linear-gradient(to bottom, #e3ede3, #b7ceb9)'
+        dustColor: 'rgba(187, 247, 208, 0.45)'
+      },
+      fireplace: {
+        name: '壁炉木屋',
+        bg: './assets/bg_fireplace.jpg',
+        dustColor: 'rgba(251, 146, 60, 0.5)'
+      },
+      garden: {
+        name: '花房露台',
+        bg: './assets/bg_garden.jpg',
+        dustColor: 'rgba(244, 114, 182, 0.4)'
       },
       night: {
         name: '治愈猫窝',
         bg: './assets/bg_night.jpg',
-        fallbackGrad: 'linear-gradient(to bottom, #2b2d42, #4a4e69)'
+        dustColor: 'rgba(216, 180, 254, 0.45)'
       }
     };
 
-    /* 4. 应用主逻辑 */
+    /* ==========================================================================
+       3. 贴纸全量库 (家具、植物、萌宠、烘焙美食、生活微缩、定制)
+       ========================================================================== */
+    const STICKER_LIBRARY = [
+      // 🛋️ 家具软装
+      { id: 'stk_sofa', cat: 'furniture', name: '复古暖黄单人沙发', img: './assets/stk_sofa.png', width: 110, height: 110 },
+      { id: 'stk_bookshelf', cat: 'furniture', name: '原木多层书架', img: './assets/stk_bookshelf.png', width: 95, height: 120 },
+      { id: 'stk_coffee_table', cat: 'furniture', name: '暖木小圆桌', img: './assets/stk_coffee_table.png', width: 85, height: 85 },
+      { id: 'stk_piano', cat: 'furniture', name: '复古立式小钢琴', img: './assets/stk_piano.png', width: 105, height: 105 },
+      { id: 'stk_pouf', cat: 'furniture', name: '柔软毛毯懒人垫', img: './assets/stk_pouf.png', width: 85, height: 75 },
+
+      // 🌿 绿植花草
+      { id: 'stk_monstera', cat: 'plants', name: '陶土盆龟背竹', img: './assets/stk_monstera.png', width: 90, height: 115 },
+      { id: 'stk_tulip', cat: 'plants', name: '玻璃瓶粉红郁金香', img: './assets/stk_tulip.png', width: 75, height: 95 },
+      { id: 'stk_succulent_shelf', cat: 'plants', name: '阶梯多肉花架', img: './assets/stk_succulent_shelf.png', width: 95, height: 110 },
+
+      // 🐱 治愈萌宠
+      { id: 'stk_cat_orange', cat: 'pets', name: '熟睡卷卷橘猫', img: './assets/stk_cat_orange.png', width: 85, height: 75 },
+      { id: 'stk_shiba', cat: 'pets', name: '趴窝小柴犬', img: './assets/stk_shiba.png', width: 85, height: 75 },
+      { id: 'stk_corgi', cat: 'pets', name: '开心短腿柯基', img: './assets/stk_corgi.png', width: 90, height: 75 },
+      { id: 'stk_ragdoll', cat: 'pets', name: '优雅坐姿布偶猫', img: './assets/stk_ragdoll.png', width: 80, height: 95 },
+
+      // 🥐 烘焙美食
+      { id: 'stk_breakfast', cat: 'food', name: '热拿铁与吐司托盘', img: './assets/stk_breakfast.png', width: 80, height: 65 },
+      { id: 'stk_croissant', cat: 'food', name: '金黄可颂与草莓蛋糕', img: './assets/stk_croissant.png', width: 85, height: 75 },
+      { id: 'stk_tea_set', cat: 'food', name: '英式陶瓷茶具', img: './assets/stk_tea_set.png', width: 85, height: 75 },
+
+      // ☕ 生活微缩 & 光影
+      { id: 'stk_record_player', cat: 'deco', name: '复古黑胶唱机', img: './assets/stk_record_player.png', width: 85, height: 80 },
+      { id: 'stk_lamp', cat: 'deco', name: '暖光百褶台灯', img: './assets/stk_lamp.png', width: 75, height: 95 },
+      { id: 'stk_fireflies', cat: 'deco', name: '微光流萤玻璃瓶', img: './assets/stk_fireflies.png', width: 70, height: 85 }
+    ];
+
+    // 本地存储定制贴纸列表
+    let customStickers = JSON.parse(localStorage.getItem('my_custom_stickers') || '[]');
+
+    /* ==========================================================================
+       4. 丁达尔微尘光影系统 (动态 Canvas 粒子)
+       ========================================================================== */
+    class DustEffect {
+      constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.numParticles = 24;
+        this.color = 'rgba(254, 240, 138, 0.5)';
+        this.resize();
+        this.init();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+      }
+
+      resize() {
+        this.canvas.width = this.canvas.parentElement.clientWidth;
+        this.canvas.height = this.canvas.parentElement.clientHeight;
+      }
+
+      setColor(color) {
+        this.color = color;
+      }
+
+      init() {
+        this.particles = [];
+        for (let i = 0; i < this.numParticles; i++) {
+          this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            radius: Math.random() * 2 + 0.8,
+            vx: (Math.random() - 0.5) * 0.35,
+            vy: -Math.random() * 0.45 - 0.1,
+            alpha: Math.random() * 0.8 + 0.2
+          });
+        }
+      }
+
+      animate() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = this.color;
+
+        for (let p of this.particles) {
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.y < 0) p.y = this.canvas.height;
+          if (p.x < 0) p.x = this.canvas.width;
+          if (p.x > this.canvas.width) p.x = 0;
+
+          this.ctx.beginPath();
+          this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          this.ctx.fill();
+        }
+        requestAnimationFrame(() => this.animate());
+      }
+    }
+
+    /* ==========================================================================
+       5. 极速丝滑 60fps 触控手柄与主游戏逻辑
+       ========================================================================== */
     class DioramaApp {
       constructor() {
         this.placedStickers = [];
         this.activeId = null;
         this.currentScene = 'sunset';
         this.currentCategory = 'all';
-        this.highestZ = 10;
+        this.highestZ = 20;
 
+        // DOM
         this.stage = document.getElementById('sceneStage');
         this.canvas = document.getElementById('stickerCanvas');
         this.bgContainer = document.getElementById('sceneBackground');
         this.trayContainer = document.getElementById('stickersTray');
-        this.toolbar = document.getElementById('floatingToolbar');
         this.emptyHint = document.getElementById('emptyHint');
+        this.controlsOverlay = document.getElementById('activeControlsOverlay');
+        this.selectionBox = document.getElementById('selectionBox');
+
+        this.dust = new DustEffect('ambientDustCanvas');
 
         this.init();
       }
@@ -381,8 +737,11 @@
       init() {
         this.renderScene(this.currentScene);
         this.renderTray(this.currentCategory);
-        this.bindEvents();
-        setTimeout(() => this.loadPreset(false), 300);
+        this.bindGlobalEvents();
+        this.bindStickerControls();
+
+        // 默认预置一套精致温馨的房间
+        setTimeout(() => this.loadPreset(false), 200);
       }
 
       renderScene(sceneKey) {
@@ -390,31 +749,39 @@
         this.currentScene = sceneKey;
         const sc = SCENES[sceneKey];
 
-        // 优先加载 Grok 渲染的背景大图
         this.bgContainer.style.backgroundImage = `url('${sc.bg}')`;
-        this.bgContainer.style.backgroundSize = 'cover';
-        this.bgContainer.style.backgroundPosition = 'center';
+        this.dust.setColor(sc.dustColor);
 
         document.querySelectorAll('.scene-tab').forEach(btn => {
           if (btn.dataset.scene === sceneKey) {
-            btn.className = 'scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-[#d97d54] text-white shadow-xs';
+            btn.className = 'scene-tab px-3 py-1 rounded-full text-xs font-semibold transition-all shrink-0 bg-[#d97d54] text-white shadow-xs';
           } else {
-            btn.className = 'scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]';
+            btn.className = 'scene-tab px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 bg-white text-[#6b5847] border border-[#e2d5c3]';
           }
         });
-        sound.playClick();
+        sound.playPageFlip();
       }
 
       renderTray(cat) {
         this.currentCategory = cat;
+        const allList = [...customStickers, ...STICKER_LIBRARY];
         const list = cat === 'all' 
-          ? STICKER_LIBRARY 
-          : STICKER_LIBRARY.filter(item => item.cat === cat);
+          ? allList 
+          : (cat === 'custom' ? customStickers : allList.filter(item => item.cat === cat));
+
+        if (list.length === 0) {
+          this.trayContainer.innerHTML = `
+            <div class="col-span-4 py-8 text-center text-xs text-[#8d7966]">
+              暂无贴纸，点击顶部「🔮 定制」生成专属贴纸！
+            </div>
+          `;
+          return;
+        }
 
         this.trayContainer.innerHTML = list.map(item => `
-          <div class="tray-sticker relative bg-white/95 rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#e5d8c6] shadow-xs cursor-pointer active:scale-95" data-id="${item.id}">
+          <div class="sticker-foil-card relative rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#e5d8c6] cursor-pointer active:scale-95" data-id="${item.id}">
             <div class="w-full h-14 flex items-center justify-center p-0.5 pointer-events-none">
-              <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain pointer-events-none filter drop-shadow(0 2px 4px rgba(0,0,0,0.12))">
+              <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain pointer-events-none filter drop-shadow(0 2px 4px rgba(0,0,0,0.15))">
             </div>
             <span class="text-[10px] text-[#735e4b] font-medium tracking-tight mt-1 truncate w-full text-center pointer-events-none">
               ${item.name}
@@ -423,8 +790,10 @@
         `).join('');
       }
 
+      // 添加新贴纸
       addSticker(templateId, initialPos = null) {
-        const tpl = STICKER_LIBRARY.find(s => s.id === templateId);
+        const allList = [...customStickers, ...STICKER_LIBRARY];
+        const tpl = allList.find(s => s.id === templateId);
         if (!tpl) return;
 
         sound.playPeel();
@@ -450,268 +819,353 @@
         };
 
         this.placedStickers.push(instance);
-        this.renderCanvasStickers();
+        this.renderAllStickers();
         this.selectSticker(instance.uid);
 
-        setTimeout(() => sound.playStick(), 80);
+        setTimeout(() => sound.playStick(), 60);
         this.updateEmptyHint();
       }
 
-      renderCanvasStickers() {
+      // 渲染画布贴纸
+      renderAllStickers() {
         this.canvas.innerHTML = '';
 
         this.placedStickers.forEach(item => {
           const el = document.createElement('div');
           el.id = item.uid;
-          el.className = 'sticker-item absolute cursor-grab active:cursor-grabbing select-none';
+          el.className = 'sticker-element absolute select-none';
           el.style.width = item.width + 'px';
           el.style.height = item.height + 'px';
           el.style.left = item.x + 'px';
           el.style.top = item.y + 'px';
           el.style.zIndex = item.zIndex;
 
-          const isSelected = this.activeId === item.uid;
           const transformStr = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
           el.style.transform = transformStr;
 
           el.innerHTML = `
             <div class="w-full h-full relative pointer-events-none flex items-center justify-center">
-              <img src="${item.img}" class="w-full h-full object-contain pointer-events-none filter drop-shadow(0 2px 5px rgba(0,0,0,0.18))">
+              <img src="${item.img}" class="w-full h-full object-contain pointer-events-none filter drop-shadow(0 2px 6px rgba(0,0,0,0.18))">
             </div>
-            ${isSelected ? `
-              <div class="selection-ring absolute -inset-2 rounded-xl pointer-events-none"></div>
-            ` : ''}
           `;
 
-          this.attachDragEvents(el, item);
+          this.attachPointerGestures(el, item);
           this.canvas.appendChild(el);
         });
 
-        this.updateToolbarPosition();
+        this.updateSelectionBoxPosition();
       }
 
-      attachDragEvents(el, item) {
+      // 极致丝滑触控：支持 PointerEvents 单指拖动、双指捏合缩放与旋转
+      attachPointerGestures(el, item) {
         let isDragging = false;
         let startX, startY;
         let origX, origY;
+        let activePointers = new Map();
+        let initialDistance = 0;
+        let initialScale = 1;
 
         const onPointerDown = (e) => {
           e.stopPropagation();
           this.selectSticker(item.uid);
           sound.playPeel();
 
-          isDragging = true;
-          el.classList.add('dragging');
+          el.setPointerCapture(e.pointerId);
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          if (activePointers.size === 1) {
+            isDragging = true;
+            el.classList.add('is-dragging');
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = item.x;
+            origY = item.y;
+          } else if (activePointers.size === 2) {
+            // 双指手势启动
+            const pts = Array.from(activePointers.values());
+            initialDistance = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+            initialScale = item.scale;
+          }
+        };
 
-          startX = clientX;
-          startY = clientY;
-          origX = item.x;
-          origY = item.y;
+        const onPointerMove = (e) => {
+          if (!activePointers.has(e.pointerId)) return;
+          activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-          const onPointerMove = (moveEvt) => {
-            if (!isDragging) return;
-            moveEvt.preventDefault();
-
-            const curX = moveEvt.touches ? moveEvt.touches[0].clientX : moveEvt.clientX;
-            const curY = moveEvt.touches ? moveEvt.touches[0].clientY : moveEvt.clientY;
-
-            const deltaX = curX - startX;
-            const deltaY = curY - startY;
-
+          if (activePointers.size === 1 && isDragging) {
+            // 单指平滑拖拽 (RAF 硬件加速)
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
             item.x = origX + deltaX;
             item.y = origY + deltaY;
 
             el.style.left = item.x + 'px';
             el.style.top = item.y + 'px';
-
-            this.updateToolbarPosition();
-          };
-
-          const onPointerUp = () => {
-            if (!isDragging) return;
-            isDragging = false;
-            el.classList.remove('dragging');
-            sound.playStick();
-
-            window.removeEventListener('mousemove', onPointerMove);
-            window.removeEventListener('mouseup', onPointerUp);
-            window.removeEventListener('touchmove', onPointerMove);
-            window.removeEventListener('touchend', onPointerUp);
-          };
-
-          window.addEventListener('mousemove', onPointerMove, { passive: false });
-          window.addEventListener('mouseup', onPointerUp);
-          window.addEventListener('touchmove', onPointerMove, { passive: false });
-          window.addEventListener('touchend', onPointerUp);
+            this.updateSelectionBoxPosition();
+          } else if (activePointers.size === 2) {
+            // 双指捏合缩放
+            const pts = Array.from(activePointers.values());
+            const curDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+            if (initialDistance > 0) {
+              const newScale = Math.max(0.4, Math.min(2.8, initialScale * (curDist / initialDistance)));
+              item.scale = newScale;
+              el.style.transform = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
+              this.updateSelectionBoxPosition();
+            }
+          }
         };
 
-        el.addEventListener('mousedown', onPointerDown);
-        el.addEventListener('touchstart', onPointerDown, { passive: true });
+        const onPointerUp = (e) => {
+          try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+          activePointers.delete(e.pointerId);
+
+          if (activePointers.size === 0 && isDragging) {
+            isDragging = false;
+            el.classList.remove('is-dragging');
+            sound.playStick();
+          }
+        };
+
+        el.addEventListener('pointerdown', onPointerDown);
+        el.addEventListener('pointermove', onPointerMove);
+        el.addEventListener('pointerup', onPointerUp);
+        el.addEventListener('pointercancel', onPointerUp);
       }
 
       selectSticker(uid) {
         this.activeId = uid;
-        this.renderCanvasStickers();
-        this.toolbar.classList.remove('hidden');
+        this.controlsOverlay.classList.remove('hidden');
+        this.updateSelectionBoxPosition();
       }
 
       deselectAll() {
         this.activeId = null;
-        this.renderCanvasStickers();
-        this.toolbar.classList.add('hidden');
-      }
-
-      updateToolbarPosition() {
-        if (!this.activeId) {
-          this.toolbar.classList.add('hidden');
-          return;
-        }
-        this.toolbar.classList.remove('hidden');
+        this.controlsOverlay.classList.add('hidden');
       }
 
       getActive() {
         return this.placedStickers.find(s => s.uid === this.activeId);
       }
 
-      loadPreset(clearOld = true) {
-        if (clearOld) {
-          this.placedStickers = [];
+      // 实时更新外框手柄位置与大小
+      updateSelectionBoxPosition() {
+        const active = this.getActive();
+        if (!active || !this.activeId) {
+          this.controlsOverlay.classList.add('hidden');
+          return;
         }
+
+        const padding = 10;
+        const w = active.width * active.scale;
+        const h = active.height * active.scale;
+        const cx = active.x + active.width / 2;
+        const cy = active.y + active.height / 2;
+
+        this.selectionBox.style.width = (w + padding * 2) + 'px';
+        this.selectionBox.style.height = (h + padding * 2) + 'px';
+        this.selectionBox.style.left = (cx - (w + padding * 2) / 2) + 'px';
+        this.selectionBox.style.top = (cy - (h + padding * 2) / 2) + 'px';
+        this.selectionBox.style.transform = `rotate(${active.rotation}deg)`;
+        this.controlsOverlay.classList.remove('hidden');
+      }
+
+      // 绑定 4 颗快捷手柄操作
+      bindStickerControls() {
+        // 1. 翻转
+        document.getElementById('pinFlip').addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          const active = this.getActive();
+          if (!active) return;
+          active.flipped = !active.flipped;
+          this.renderAllStickers();
+          sound.playClick();
+        });
+
+        // 2. 删除
+        document.getElementById('pinDelete').addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          if (!this.activeId) return;
+          const targetEl = document.getElementById(this.activeId);
+          if (targetEl) {
+            targetEl.style.transition = 'all 0.15s ease-out';
+            targetEl.style.transform += ' scale(0)';
+            targetEl.style.opacity = '0';
+          }
+          sound.playDelete();
+          setTimeout(() => {
+            this.placedStickers = this.placedStickers.filter(s => s.uid !== this.activeId);
+            this.deselectAll();
+            this.renderAllStickers();
+            this.updateEmptyHint();
+          }, 150);
+        });
+
+        // 3. 层级循环调序
+        document.getElementById('pinLayer').addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          const active = this.getActive();
+          if (!active) return;
+          this.highestZ += 1;
+          active.zIndex = this.highestZ;
+          this.renderAllStickers();
+          sound.playClick();
+        });
+
+        // 4. 右下角复合旋转与缩放手柄 (单手极其丝滑)
+        const transformPin = document.getElementById('pinTransformHandle');
+        let isTransforming = false;
+        let startAngle = 0;
+        let startDist = 0;
+        let initialStickerRot = 0;
+        let initialStickerScale = 1;
+
+        transformPin.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          const active = this.getActive();
+          if (!active) return;
+
+          transformPin.setPointerCapture(e.pointerId);
+          isTransforming = true;
+          sound.playClick();
+
+          const rect = this.canvas.getBoundingClientRect();
+          const cx = rect.left + active.x + active.width / 2;
+          const cy = rect.top + active.y + active.height / 2;
+
+          startAngle = Math.atan2(e.clientY - cy, e.clientX - cx);
+          startDist = Math.hypot(e.clientX - cx, e.clientY - cy);
+          initialStickerRot = active.rotation;
+          initialStickerScale = active.scale;
+
+          const onPointerMove = (moveEvt) => {
+            if (!isTransforming) return;
+            const curAngle = Math.atan2(moveEvt.clientY - cy, moveEvt.clientX - cx);
+            const curDist = Math.hypot(moveEvt.clientX - cy, moveEvt.clientX - cx);
+
+            // 旋转增量
+            const deltaRot = (curAngle - startAngle) * (180 / Math.PI);
+            active.rotation = Math.round((initialStickerRot + deltaRot) % 360);
+
+            // 缩放增量
+            const scaleMultiplier = curDist / (startDist || 1);
+            active.scale = Math.max(0.35, Math.min(2.5, initialStickerScale * scaleMultiplier));
+
+            const targetEl = document.getElementById(active.uid);
+            if (targetEl) {
+              targetEl.style.transform = `rotate(${active.rotation}deg) scale(${active.scale}) scaleX(${active.flipped ? -1 : 1})`;
+            }
+            this.updateSelectionBoxPosition();
+          };
+
+          const onPointerUp = (upEvt) => {
+            try { transformPin.releasePointerCapture(upEvt.pointerId); } catch (err) {}
+            isTransforming = false;
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
+          };
+
+          window.addEventListener('pointermove', onPointerMove);
+          window.addEventListener('pointerup', onPointerUp);
+        });
+      }
+
+      // 灵感预设
+      loadPreset(clearOld = true) {
+        if (clearOld) this.placedStickers = [];
         const rect = this.canvas.getBoundingClientRect();
         const cw = rect.width || 380;
         const ch = rect.height || 360;
 
-        this.addSticker('stk_sofa', { x: cw * 0.18, y: ch * 0.40 });
-        this.addSticker('stk_bookshelf', { x: cw * 0.62, y: ch * 0.22 });
-        this.addSticker('stk_monstera', { x: cw * 0.05, y: ch * 0.35 });
-        this.addSticker('stk_cat_orange', { x: cw * 0.38, y: ch * 0.55 });
-        this.addSticker('stk_coffee_table', { x: cw * 0.45, y: ch * 0.42 });
+        if (this.currentScene === 'bakery') {
+          this.addSticker('stk_croissant', { x: cw * 0.25, y: ch * 0.45 });
+          this.addSticker('stk_tea_set', { x: cw * 0.55, y: ch * 0.42 });
+          this.addSticker('stk_corgi', { x: cw * 0.35, y: ch * 0.62 });
+          this.addSticker('stk_lamp', { x: cw * 0.65, y: ch * 0.22 });
+        } else {
+          this.addSticker('stk_sofa', { x: cw * 0.16, y: ch * 0.38 });
+          this.addSticker('stk_bookshelf', { x: cw * 0.62, y: ch * 0.22 });
+          this.addSticker('stk_monstera', { x: cw * 0.04, y: ch * 0.32 });
+          this.addSticker('stk_cat_orange', { x: cw * 0.38, y: ch * 0.52 });
+          this.addSticker('stk_coffee_table', { x: cw * 0.45, y: ch * 0.42 });
+        }
 
         this.deselectAll();
       }
 
       updateEmptyHint() {
-        if (this.placedStickers.length === 0) {
-          this.emptyHint.style.opacity = '1';
-        } else {
-          this.emptyHint.style.opacity = '0';
-        }
+        this.emptyHint.style.opacity = this.placedStickers.length === 0 ? '1' : '0';
       }
 
-      bindEvents() {
+      // 全局按键与事件
+      bindGlobalEvents() {
+        // 点击托盘贴纸
         this.trayContainer.addEventListener('click', (e) => {
-          const card = e.target.closest('.tray-sticker');
+          const card = e.target.closest('.sticker-foil-card');
           if (card) {
             this.addSticker(card.dataset.id);
           }
         });
 
-        document.querySelectorAll('.cat-pill').forEach(btn => {
-          btn.addEventListener('click', () => {
-            sound.playClick();
-            document.querySelectorAll('.cat-pill').forEach(b => {
-              b.className = 'cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all';
-            });
-            btn.className = 'cat-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white shrink-0 transition-all shadow-xs';
-            this.renderTray(btn.dataset.cat);
-          });
-        });
-
+        // 场景切换
         document.querySelectorAll('.scene-tab').forEach(btn => {
           btn.addEventListener('click', () => {
             this.renderScene(btn.dataset.scene);
           });
         });
 
+        // 分类标签切换
+        document.querySelectorAll('.cat-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            sound.playClick();
+            document.querySelectorAll('.cat-pill').forEach(b => {
+              b.className = 'cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all';
+            });
+            btn.className = 'cat-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white shrink-0 transition-all shadow-xs';
+            this.renderTray(btn.dataset.cat);
+          });
+        });
+
+        // 点击画布空白取消选中
         this.stage.addEventListener('pointerdown', (e) => {
-          if (e.target === this.stage || e.target === this.canvas || e.target.closest('#sceneBackground')) {
+          if (e.target === this.stage || e.target === this.canvas || e.target.id === 'sceneBackground' || e.target.id === 'ambientDustCanvas') {
             this.deselectAll();
           }
         });
 
-        const soundBtn = document.getElementById('soundToggleBtn');
-        soundBtn.addEventListener('click', () => {
-          sound.enabled = !sound.enabled;
-          soundBtn.innerText = sound.enabled ? '🔊' : '🔇';
-          if (sound.enabled) sound.playClick();
+        // 沉浸音效按钮
+        document.getElementById('ambientAudioBtn').addEventListener('click', () => {
+          sound.cycleAmbience();
         });
 
+        // 灵感预设按钮
         document.getElementById('presetBtn').addEventListener('click', () => {
           this.loadPreset(true);
           sound.playStick();
         });
 
+        // 清空按钮
         document.getElementById('clearBtn').addEventListener('click', () => {
           if (this.placedStickers.length === 0) return;
-          if (confirm('确定要撕掉房间里所有的贴纸吗？')) {
+          if (confirm('确定要清空房间里所有的贴纸吗？')) {
             this.placedStickers = [];
             this.deselectAll();
             this.updateEmptyHint();
+            this.renderAllStickers();
             sound.playDelete();
           }
         });
 
-        document.getElementById('actFlip').addEventListener('click', () => {
-          const active = this.getActive();
-          if (!active) return;
-          active.flipped = !active.flipped;
-          this.renderCanvasStickers();
-          sound.playClick();
-        });
-
-        document.getElementById('actLayerUp').addEventListener('click', () => {
-          const active = this.getActive();
-          if (!active) return;
-          this.highestZ += 1;
-          active.zIndex = this.highestZ;
-          this.renderCanvasStickers();
-          sound.playClick();
-        });
-
-        document.getElementById('actLayerDown').addEventListener('click', () => {
-          const active = this.getActive();
-          if (!active) return;
-          active.zIndex = Math.max(1, active.zIndex - 1);
-          this.renderCanvasStickers();
-          sound.playClick();
-        });
-
-        document.getElementById('actRotateLeft').addEventListener('click', () => {
-          const active = this.getActive();
-          if (!active) return;
-          active.rotation = (active.rotation - 15) % 360;
-          this.renderCanvasStickers();
-          sound.playClick();
-        });
-
-        document.getElementById('actRotateRight').addEventListener('click', () => {
-          const active = this.getActive();
-          if (!active) return;
-          active.rotation = (active.rotation + 15) % 360;
-          this.renderCanvasStickers();
-          sound.playClick();
-        });
-
-        document.getElementById('actDelete').addEventListener('click', () => {
-          if (!this.activeId) return;
-          this.placedStickers = this.placedStickers.filter(s => s.uid !== this.activeId);
-          this.deselectAll();
-          this.updateEmptyHint();
-          sound.playDelete();
-        });
-
+        // 导出保存
         document.getElementById('exportBtn').addEventListener('click', () => {
           this.exportImage();
         });
 
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
+        document.getElementById('closeExportModalBtn').addEventListener('click', () => {
           document.getElementById('exportModal').classList.add('hidden');
         });
       }
 
+      // 拍立得 2x 视网膜高清海报导出
       exportImage() {
         sound.playClick();
         const stageRect = this.stage.getBoundingClientRect();
@@ -724,55 +1178,61 @@
 
         const sc = SCENES[this.currentScene];
         const bgImg = new Image();
-        bgImg.crossOrigin = "anonymous";
+        bgImg.crossOrigin = 'anonymous';
+
+        const finishRender = () => {
+          const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
+          if (sorted.length === 0) {
+            this.showExportResult(canvas.toDataURL('image/png'));
+            return;
+          }
+
+          let loadedCount = 0;
+          sorted.forEach(item => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              ctx.save();
+              ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+              ctx.rotate((item.rotation * Math.PI) / 180);
+              ctx.scale(item.flipped ? -item.scale : item.scale, item.scale);
+              ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
+              ctx.restore();
+
+              loadedCount++;
+              if (loadedCount === sorted.length) {
+                // 拍立得边框与水印
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 8;
+                ctx.strokeRect(4, 4, stageRect.width - 8, stageRect.height - 8);
+
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                ctx.fillText(`✨ ${sc.name} · Sticker Diorama`, 14, stageRect.height - 14);
+
+                this.showExportResult(canvas.toDataURL('image/png'));
+              }
+            };
+            img.onerror = () => {
+              loadedCount++;
+              if (loadedCount === sorted.length) {
+                this.showExportResult(canvas.toDataURL('image/png'));
+              }
+            };
+            img.src = item.img;
+          });
+        };
+
         bgImg.onload = () => {
           ctx.drawImage(bgImg, 0, 0, stageRect.width, stageRect.height);
-          this.drawStickersToCanvas(ctx, stageRect, canvas);
+          finishRender();
         };
         bgImg.onerror = () => {
-          // 降级使用暖色背景
-          ctx.fillStyle = '#f3e5d0';
+          ctx.fillStyle = '#2b2520';
           ctx.fillRect(0, 0, stageRect.width, stageRect.height);
-          this.drawStickersToCanvas(ctx, stageRect, canvas);
+          finishRender();
         };
         bgImg.src = sc.bg;
-      }
-
-      drawStickersToCanvas(ctx, stageRect, canvas) {
-        const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
-        if (sorted.length === 0) {
-          this.showExportResult(canvas.toDataURL('image/png'));
-          return;
-        }
-
-        let loadedCount = 0;
-        sorted.forEach(item => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => {
-            ctx.save();
-            ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
-            ctx.rotate((item.rotation * Math.PI) / 180);
-            ctx.scale(item.flipped ? -item.scale : item.scale, item.scale);
-            ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
-            ctx.restore();
-
-            loadedCount++;
-            if (loadedCount === sorted.length) {
-              ctx.strokeStyle = '#dfd0bd';
-              ctx.lineWidth = 4;
-              ctx.strokeRect(2, 2, stageRect.width - 4, stageRect.height - 4);
-              this.showExportResult(canvas.toDataURL('image/png'));
-            }
-          };
-          img.onerror = () => {
-            loadedCount++;
-            if (loadedCount === sorted.length) {
-              this.showExportResult(canvas.toDataURL('image/png'));
-            }
-          };
-          img.src = item.img;
-        });
       }
 
       showExportResult(dataUrl) {
@@ -782,8 +1242,182 @@
       }
     }
 
+    /* ==========================================================================
+       6. 🔮 Grok AI 贴纸工坊：前端实时透明抠图与动态注入系统
+       ========================================================================== */
+    class AiWorkshop {
+      constructor(app) {
+        this.app = app;
+        this.apiKey = 'sk-Tkh8xl7XqIlbiGje1wI9g6HJBnCSZqFBm2W9ym5Q';
+        this.modal = document.getElementById('aiWorkshopModal');
+        this.input = document.getElementById('aiPromptInput');
+        this.btn = document.getElementById('startGenerateStickerBtn');
+        this.spinner = document.getElementById('genBtnSpinner');
+        this.btnText = document.getElementById('genBtnText');
+        this.statusText = document.getElementById('aiGenStatus');
+
+        this.bindEvents();
+      }
+
+      bindEvents() {
+        document.getElementById('openAiWorkshopBtn').addEventListener('click', () => {
+          this.modal.classList.remove('hidden');
+          sound.playClick();
+        });
+
+        document.getElementById('closeAiModalBtn').addEventListener('click', () => {
+          this.modal.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.prompt-chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            this.input.value = chip.innerText.replace(/^[^\s]+\s*/, '');
+            sound.playClick();
+          });
+        });
+
+        this.btn.addEventListener('click', () => this.generate());
+      }
+
+      async generate() {
+        const userPrompt = this.input.value.trim();
+        if (!userPrompt) {
+          alert('请先输入你想画的贴纸内容！');
+          return;
+        }
+
+        this.btn.disabled = true;
+        this.spinner.classList.remove('hidden');
+        this.btnText.innerText = 'Grok 正在绘制中...';
+        this.statusText.classList.remove('hidden');
+        sound.playPeel();
+
+        const fullPrompt = `Die-cut sticker of ${userPrompt}, cute cozy cartoon style, thick white sticker border outline, solid pure white background, 2d sticker art`;
+
+        try {
+          const resp = await fetch('https://img.pipiwangcom.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'grok-2-imageGen',
+              prompt: fullPrompt,
+              n: 1,
+              size: '1024x1024'
+            })
+          });
+
+          const data = await resp.json();
+          if (!data.data || !data.data[0] || !data.data[0].url) {
+            throw new Error('API 未返回有效图片');
+          }
+
+          const rawUrl = data.data[0].url;
+          this.btnText.innerText = '正在进行透明边缘处理...';
+
+          // 加载图片并进行前端 Canvas Flood-Fill 抠白底
+          const transparentPng = await this.removeWhiteBackground(rawUrl);
+
+          // 保存到自定义列表
+          const newSticker = {
+            id: 'custom_' + Date.now(),
+            cat: 'custom',
+            name: userPrompt.slice(0, 8),
+            img: transparentPng,
+            width: 85,
+            height: 85
+          };
+
+          customStickers.unshift(newSticker);
+          localStorage.setItem('my_custom_stickers', JSON.stringify(customStickers));
+
+          this.modal.classList.add('hidden');
+          this.input.value = '';
+          this.app.renderTray('custom');
+          this.app.addSticker(newSticker.id);
+          sound.playStick();
+
+          alert('🎉 专属贴纸绘制成功，已为你贴入房间！');
+        } catch (e) {
+          alert('生成失败，请重试：' + (e.message || e));
+        } finally {
+          this.btn.disabled = false;
+          this.spinner.classList.add('hidden');
+          this.btnText.innerText = '✨ 开始绘制专属贴纸';
+          this.statusText.classList.add('hidden');
+        }
+      }
+
+      // 前端高精度 Flood-Fill 背景透明算法
+      removeWhiteBackground(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const targetSize = 400;
+            canvas.width = targetSize;
+            canvas.height = targetSize;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, targetSize, targetSize);
+
+            const imgData = ctx.getImageData(0, 0, targetSize, targetSize);
+            const d = imgData.data;
+            const w = targetSize;
+            const h = targetSize;
+
+            // 边缘四边起点
+            const visited = new Uint8Array(w * h);
+            const queue = [];
+
+            const isWhite = (x, y) => {
+              const idx = (y * w + x) * 4;
+              return d[idx] > 232 && d[idx+1] > 232 && d[idx+2] > 232;
+            };
+
+            for (let x = 0; x < w; x++) {
+              if (isWhite(x, 0)) { queue.push(x, 0); visited[x] = 1; }
+              if (isWhite(x, h - 1)) { queue.push(x, h - 1); visited[(h - 1) * w + x] = 1; }
+            }
+            for (let y = 0; y < h; y++) {
+              if (isWhite(0, y) && !visited[y * w]) { queue.push(0, y); visited[y * w] = 1; }
+              if (isWhite(w - 1, y) && !visited[y * w + (w - 1)]) { queue.push(w - 1, y); visited[y * w + (w - 1)] = 1; }
+            }
+
+            let head = 0;
+            while (head < queue.length) {
+              const cx = queue[head++];
+              const cy = queue[head++];
+              const idx = (cy * w + cx) * 4;
+              d[idx + 3] = 0; // 设为完全透明
+
+              const neighbors = [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]];
+              for (let [nx, ny] of neighbors) {
+                if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                  const nPos = ny * w + nx;
+                  if (!visited[nPos] && isWhite(nx, ny)) {
+                    visited[nPos] = 1;
+                    queue.push(nx, ny);
+                  }
+                }
+              }
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(url);
+          img.src = url;
+        });
+      }
+    }
+
+    // 启动
     window.addEventListener('DOMContentLoaded', () => {
       window.app = new DioramaApp();
+      window.aiWorkshop = new AiWorkshop(window.app);
     });
   </script>
 </body>
