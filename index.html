@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>造景贴纸物语 · 治愈微缩手帐</title>
+  <title>造景贴纸物语 · 1:1 治愈微缩手帐</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <style>
@@ -20,30 +20,47 @@
       padding: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
-      background-color: #2b221d;
+      background-color: #231b16;
     }
 
-    /* 手作工坊工作台背景纹理 */
+    /* 手作工坊复古桌垫背景 */
     .desk-mat {
-      background-color: #2e241e;
+      background-color: #251d18;
       background-image: 
-        radial-gradient(circle at 50% 25%, rgba(255, 230, 200, 0.08) 0%, transparent 70%),
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 100% 100%, 24px 24px, 24px 24px;
+        radial-gradient(circle at 50% 20%, rgba(255, 235, 210, 0.08) 0%, transparent 70%),
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 20px 20px, 20px 20px;
     }
 
-    /* 拟真手帐美纹胶带贴角 */
+    /* 真实手帐卡砖外壳 (大尺寸 400x540，自适应充满手机屏) */
+    #sceneCard {
+      width: 400px;
+      height: 540px;
+      box-shadow: 
+        0 22px 50px rgba(0, 0, 0, 0.65),
+        0 6px 16px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+      border: 8px solid #fdfbf7;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      transform-origin: center center;
+      transition: transform 0.2s ease-out;
+      background: #faf4ea;
+    }
+
+    /* 拟真和纸胶带固定贴角 */
     .washi-tape-tl {
       position: absolute;
       top: -12px;
-      left: 20px;
-      width: 70px;
+      left: 24px;
+      width: 75px;
       height: 24px;
-      background: rgba(234, 204, 164, 0.75);
+      background: rgba(235, 205, 165, 0.8);
       backdrop-filter: blur(2px);
-      transform: rotate(-7deg);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      transform: rotate(-6deg);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
       border-left: 2px dashed rgba(180, 140, 100, 0.5);
       border-right: 2px dashed rgba(180, 140, 100, 0.5);
       z-index: 45;
@@ -52,124 +69,103 @@
     .washi-tape-tr {
       position: absolute;
       top: -12px;
-      right: 20px;
-      width: 70px;
+      right: 24px;
+      width: 75px;
       height: 24px;
-      background: rgba(222, 185, 146, 0.75);
+      background: rgba(220, 185, 145, 0.8);
       backdrop-filter: blur(2px);
-      transform: rotate(6deg);
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      transform: rotate(5deg);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
       border-left: 2px dashed rgba(180, 140, 100, 0.5);
       border-right: 2px dashed rgba(180, 140, 100, 0.5);
       z-index: 45;
       pointer-events: none;
     }
 
-    /* 场景卡砖外壳 (3:4 或 4:5 比例的手帐内页卡) */
-    #sceneCard {
-      width: 380px;
-      height: 500px;
-      box-shadow: 
-        0 20px 45px rgba(0, 0, 0, 0.55),
-        0 4px 12px rgba(0, 0, 0, 0.3),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-      border: 8px solid #fefbf6;
-      border-radius: 20px;
-      position: relative;
-      overflow: hidden;
-      transform-origin: center center;
-      transition: transform 0.2s ease-out;
-      background: #faf4ea;
-    }
-
-    /* 4 种房间主题壁纸与地板 */
-    /* 主题 1: 街角暖阳日落 (Warm Sunset) */
+    /* 房间主题壁纸与地板 (自然融合，绝不切断家具) */
+    /* 1. 街角暖阳日落 (Warm Sunset) */
     .theme-sunset .wall-surface {
-      background: linear-gradient(180deg, #fceade 0%, #fae2cc 45%, #f6d2b3 100%);
+      background: linear-gradient(180deg, #faebd7 0%, #fae1cc 50%, #f5cfb0 100%);
       background-image: 
-        radial-gradient(ellipse at 50% 30%, rgba(255, 240, 220, 0.6) 0%, transparent 65%),
+        radial-gradient(ellipse at 50% 25%, rgba(255, 245, 230, 0.65) 0%, transparent 65%),
         linear-gradient(rgba(215, 160, 130, 0.08) 1px, transparent 1px),
         linear-gradient(90deg, rgba(215, 160, 130, 0.08) 1px, transparent 1px);
       background-size: 100% 100%, 20px 20px, 20px 20px;
     }
     .theme-sunset .skirting-board {
-      background: linear-gradient(180deg, #5c381e 0%, #7d4d29 25%, #4b2d18 100%);
-      box-shadow: 0 3px 6px rgba(0,0,0,0.22);
-      border-top: 1.5px solid #945f34;
-      border-bottom: 2px solid #331d0e;
+      background: linear-gradient(180deg, #6c4224 0%, #87552f 40%, #523119 100%);
+      border-top: 1.5px solid #a86f43;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     }
     .theme-sunset .floor-surface {
       background-color: #a8794f;
       background-image: 
-        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.04) 0, rgba(0, 0, 0, 0.04) 14px, transparent 14px, transparent 28px),
-        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.04) 0, rgba(0, 0, 0, 0.04) 14px, transparent 14px, transparent 28px),
-        linear-gradient(180deg, #99693f 0%, #b38155 40%, #885932 100%);
-      box-shadow: inset 0 6px 12px rgba(0,0,0,0.18);
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.035) 0, rgba(0, 0, 0, 0.035) 16px, transparent 16px, transparent 32px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.035) 0, rgba(0, 0, 0, 0.035) 16px, transparent 16px, transparent 32px),
+        linear-gradient(180deg, #a37248 0%, #b8865a 35%, #8f5f37 100%);
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.15);
     }
 
-    /* 主题 2: 复古英伦墨绿 (Sage Green Floral) */
+    /* 2. 英伦复古墨绿 (Sage Green) */
     .theme-sage .wall-surface {
-      background: linear-gradient(180deg, #375244 0%, #2f473a 100%);
+      background: linear-gradient(180deg, #375344 0%, #2b4236 100%);
       background-image: 
-        radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.06) 0%, transparent 70%),
+        radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 65%),
         repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(255, 255, 255, 0.03) 24px, rgba(255, 255, 255, 0.03) 25px);
     }
     .theme-sage .skirting-board {
-      background: linear-gradient(180deg, #3c2415 0%, #52341e 30%, #2d1a0e 100%);
-      border-top: 1.5px solid #6b4429;
-      border-bottom: 2px solid #1a0e08;
+      background: linear-gradient(180deg, #3d2616 0%, #543620 40%, #2a180d 100%);
+      border-top: 1.5px solid #734a2c;
     }
     .theme-sage .floor-surface {
-      background: linear-gradient(180deg, #6c4627 0%, #7d5431 35%, #59371d 100%);
-      background-image: repeating-linear-gradient(90deg, transparent, transparent 38px, rgba(0,0,0,0.15) 38px, rgba(0,0,0,0.15) 40px);
-      box-shadow: inset 0 6px 12px rgba(0,0,0,0.22);
+      background: linear-gradient(180deg, #6b4526 0%, #7d5431 35%, #59371d 100%);
+      background-image: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.14) 40px, rgba(0,0,0,0.14) 42px);
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.2);
     }
 
-    /* 主题 3: 法式奶油小居 (French Cream Wainscoting) */
+    /* 3. 法式奶油石膏线 (French Cream) */
     .theme-cream .wall-surface {
-      background: linear-gradient(180deg, #faf6f0 0%, #f4eee3 100%);
-      background-image: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.8) 0%, transparent 60%);
+      background: linear-gradient(180deg, #faf7f2 0%, #f4eee3 100%);
+      background-image: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.85) 0%, transparent 60%);
     }
     .theme-cream .skirting-board {
-      background: linear-gradient(180deg, #eae2d3 0%, #dcd1be 30%, #b8ab96 100%);
+      background: linear-gradient(180deg, #eee7db 0%, #dfd5c3 40%, #c4b69f 100%);
       border-top: 1.5px solid #ffffff;
-      border-bottom: 2px solid #998a75;
     }
     .theme-cream .floor-surface {
       background: linear-gradient(180deg, #c7a982 0%, #d8bb94 35%, #b5946c 100%);
       background-image: 
-        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 16px, transparent 16px, transparent 32px),
-        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.04) 0, rgba(0, 0, 0, 0.04) 16px, transparent 16px, transparent 32px);
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.05) 0, rgba(255, 255, 255, 0.05) 18px, transparent 18px, transparent 36px),
+        repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.04) 0, rgba(0, 0, 0, 0.04) 18px, transparent 18px, transparent 36px);
       box-shadow: inset 0 6px 12px rgba(0,0,0,0.12);
     }
 
-    /* 主题 4: 午夜暖炉星空 (Midnight Cozy) */
+    /* 4. 午夜暖炉星空 (Midnight Cozy) */
     .theme-midnight .wall-surface {
       background: linear-gradient(180deg, #182236 0%, #111826 100%);
-      background-image: radial-gradient(ellipse at 50% 40%, rgba(245, 158, 11, 0.09) 0%, transparent 70%);
+      background-image: radial-gradient(ellipse at 50% 40%, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
     }
     .theme-midnight .skirting-board {
-      background: linear-gradient(180deg, #301f14 0%, #462c1c 30%, #1e130c 100%);
+      background: linear-gradient(180deg, #301f14 0%, #462c1c 40%, #1e130c 100%);
       border-top: 1.5px solid #5a3c27;
-      border-bottom: 2px solid #100a06;
     }
     .theme-midnight .floor-surface {
       background: linear-gradient(180deg, #443124 0%, #543e2e 35%, #35251a 100%);
       box-shadow: inset 0 6px 14px rgba(0,0,0,0.3);
     }
 
-    /* 贴纸实体 */
+    /* 贴纸实体 (实心立面、高饱和纯净、自然高阴影) */
     .sticker-item {
       position: absolute;
       touch-action: none;
       transform-origin: center center;
       cursor: grab;
-      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.18));
+      filter: drop-shadow(0 4px 7px rgba(0, 0, 0, 0.2));
       transition: filter 0.15s ease;
     }
     .sticker-item.is-dragging {
       cursor: grabbing;
-      filter: drop-shadow(0 20px 24px rgba(0, 0, 0, 0.35)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)) !important;
+      filter: drop-shadow(0 22px 26px rgba(0, 0, 0, 0.38)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.22)) !important;
       z-index: 9999 !important;
       transform: scale(1.06) rotate(-2deg);
     }
@@ -180,28 +176,22 @@
       pointer-events: none;
     }
 
-    /* 关卡剪影提示槽 */
-    .silhouette-guide {
+    /* 样板间半透明优雅参考轮廓 (非刺眼虚线框，纯净幽灵参考) */
+    .blueprint-ghost {
       position: absolute;
-      border: 2px dashed rgba(231, 111, 81, 0.6);
-      background: rgba(231, 111, 81, 0.08);
-      border-radius: 12px;
       pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      opacity: 0.3;
+      filter: grayscale(80%) drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      transition: opacity 0.3s ease;
     }
-    .silhouette-guide.is-placed {
+    .blueprint-ghost.is-completed {
       opacity: 0;
       transform: scale(0.95);
     }
-    .silhouette-guide img {
-      width: 90%;
-      height: 90%;
+    .blueprint-ghost img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      opacity: 0.32;
-      filter: grayscale(100%) contrast(120%);
     }
 
     /* 选中编辑边框与手柄 */
@@ -233,7 +223,7 @@
     @keyframes steam-rise {
       0% { transform: translateY(0) scaleX(1); opacity: 0; }
       40% { opacity: 0.85; }
-      100% { transform: translateY(-20px) scaleX(1.3); opacity: 0; }
+      100% { transform: translateY(-22px) scaleX(1.3); opacity: 0; }
     }
     .steam-float {
       animation: steam-rise 2s ease-out infinite;
@@ -258,7 +248,6 @@
       animation: foil-glitter 3s infinite linear;
     }
 
-    /* 抽屉滚动条隐藏 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
@@ -266,7 +255,7 @@
 <body class="desk-mat flex flex-col items-center justify-between h-screen w-screen overflow-hidden text-stone-800">
 
   <!-- 顶部状态栏 HUD -->
-  <header class="w-full max-w-lg px-3 pt-2.5 pb-1 flex items-center justify-between z-40 shrink-0">
+  <header class="w-full max-w-md px-3 pt-2 pb-1 flex items-center justify-between z-40 shrink-0">
     <!-- 左侧：金币与盲袋 -->
     <div class="flex items-center gap-1.5">
       <div class="bg-stone-900/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-amber-500/30 text-amber-300 font-extrabold text-xs shadow-md flex items-center gap-1">
@@ -280,20 +269,27 @@
       </button>
     </div>
 
-    <!-- 中间：当前模式徽章 -->
-    <button id="modeToggleBtn" class="bg-stone-900/85 backdrop-blur-md px-3 py-1 rounded-full border border-stone-600 text-stone-200 text-xs font-bold shadow-md active:scale-95 transition-all flex items-center gap-1.5">
-      <span id="modeIcon">🧩</span>
-      <span id="modeName">关卡挑战</span>
-    </button>
+    <!-- 中间：主题心愿单 / 模式切换 -->
+    <div class="flex items-center gap-1 bg-stone-900/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-stone-600 shadow-md">
+      <button id="modeToggleBtn" class="text-stone-200 text-xs font-bold active:scale-95 transition-all flex items-center gap-1">
+        <span id="modeIcon">🎨</span>
+        <span id="modeName">自由造景</span>
+      </button>
+      <span class="text-stone-500 text-xs">|</span>
+      <!-- 样板参考切换开关 -->
+      <button id="toggleBlueprintBtn" class="text-stone-300 text-xs font-semibold hover:text-amber-400 active:scale-95" title="样板间灵感参考">
+        <span>👁️ 样板</span>
+      </button>
+    </div>
 
     <!-- 右侧：功能按钮群 -->
     <div class="flex items-center gap-1 bg-stone-900/80 backdrop-blur-md p-1 rounded-full border border-stone-700 shadow-md">
-      <!-- 📖 DeepSeek AI 治愈手帐日记 -->
-      <button id="openDiaryBtn" class="w-7 h-7 rounded-full bg-amber-600/90 text-white text-xs font-bold hover:bg-amber-500 active:scale-95 flex items-center justify-center shadow" title="AI 提笔写手帐日记">
+      <!-- 📖 DeepSeek AI 治愈手帐手记 -->
+      <button id="openDiaryBtn" class="w-7 h-7 rounded-full bg-amber-600 text-white text-xs font-bold hover:bg-amber-500 active:scale-95 flex items-center justify-center shadow" title="AI 提笔写手帐">
         📖
       </button>
-      <!-- 房间风格切换 (自由模式专属) -->
-      <button id="themePickerBtn" class="w-7 h-7 rounded-full bg-stone-800 text-stone-200 text-xs font-bold hover:bg-stone-700 active:scale-95 flex items-center justify-center hidden" title="切换房间装潢">
+      <!-- 房间内饰风格切换 -->
+      <button id="themePickerBtn" class="w-7 h-7 rounded-full bg-stone-800 text-stone-200 text-xs font-bold hover:bg-stone-700 active:scale-95 flex items-center justify-center" title="切换房间内饰">
         🎨
       </button>
       <!-- 环境音效 (雨声/Lo-Fi/静音) -->
@@ -315,30 +311,25 @@
     </div>
   </header>
 
-  <!-- 关卡任务进度卡 (关卡挑战模式显示) -->
-  <div id="levelBanner" class="w-full max-w-sm px-4 shrink-0 transition-all duration-300 z-30 mb-1">
-    <div class="bg-[#faf5ec]/95 backdrop-blur-md rounded-2xl p-2 border border-[#dfcca8] shadow-lg flex items-center justify-between">
+  <!-- 心愿清单提示条 (委托/关卡模式时展示，纯文字勾选，绝不污染画面) -->
+  <div id="wishlistBanner" class="w-full max-w-md px-3 shrink-0 transition-all duration-300 z-30 mb-1 hidden">
+    <div class="bg-[#faf5ec]/95 backdrop-blur-md rounded-2xl px-3 py-1.5 border border-[#dfcca8] shadow-md flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span id="levelIcon" class="text-xl">☕</span>
+        <span id="levelIcon" class="text-lg">☕</span>
         <div>
-          <div class="flex items-center gap-1.5">
-            <span id="levelTitle" class="text-xs font-extrabold text-[#4a3726]">第 1 关 · 街角日落咖啡馆</span>
-            <span id="levelRewardBadge" class="text-[10px] text-amber-600 font-bold bg-amber-100 px-1.5 py-0.2 rounded-md">★ 300 🪙</span>
-          </div>
-          <p id="levelStepHint" class="text-[10px] text-[#8a725e] truncate max-w-[200px]">拖动下方发光贴纸放入对应虚线槽内</p>
+          <span id="levelTitle" class="text-xs font-extrabold text-[#4a3726]">第 1 关 · 街角日落咖啡馆</span>
+          <span id="levelHint" class="text-[10px] text-[#8a725e] block">开局从零自由布置，点击右侧查看清单</span>
         </div>
       </div>
-      <!-- 进度条 -->
-      <div class="flex items-center gap-1.5 shrink-0">
-        <div class="w-14 h-2 bg-stone-200 rounded-full overflow-hidden">
-          <div id="levelProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300" style="width: 0%"></div>
-        </div>
-        <span id="levelProgressText" class="text-xs font-black text-[#e76f51]">0%</span>
+      <div class="flex items-center gap-1.5">
+        <button id="openChecklistBtn" class="px-2 py-0.5 rounded-lg bg-amber-500 text-white text-[10px] font-bold shadow-xs">
+          心愿清单 (<span id="wishlistCount">0/6</span>)
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- 核心中央造景卡砖容器 (380x500 标准手帐比例，自适应屏幕缩放) -->
+  <!-- 核心中央造景卡砖 (400x540 大比例，自适应撑满手机屏幕，开局洁净治愈) -->
   <main id="sceneCardWrapper" class="relative flex items-center justify-center w-full grow overflow-visible">
     
     <div id="sceneCard" class="theme-sunset select-none">
@@ -346,23 +337,23 @@
       <div class="washi-tape-tl"></div>
       <div class="washi-tape-tr"></div>
 
-      <!-- 1. 墙面区域 (上半段 65% 高度: 325px) -->
-      <div id="cardWall" class="wall-surface absolute top-0 left-0 right-0 h-[325px] transition-all duration-300">
-        <!-- 柔和壁画光晕 -->
+      <!-- 1. 墙面区域 (上半段 66%: 0 - 356px) -->
+      <div id="cardWall" class="wall-surface absolute top-0 left-0 right-0 h-[356px] transition-all duration-300">
+        <!-- 柔和壁画与光晕 -->
       </div>
 
-      <!-- 2. 实木踢脚线 (地平分割线: 322px - 334px) -->
-      <div id="cardSkirting" class="skirting-board absolute top-[322px] left-0 right-0 h-[12px] z-10 transition-all duration-300"></div>
+      <!-- 2. 实木踢脚线 (地平分割线: 354px - 364px，在底层，家具在上方遮挡) -->
+      <div id="cardSkirting" class="skirting-board absolute top-[354px] left-0 right-0 h-[10px] z-5 transition-all duration-300"></div>
 
-      <!-- 3. 地板区域 (下半段 35% 高度: 334px - 500px) -->
-      <div id="cardFloor" class="floor-surface absolute top-[334px] left-0 right-0 bottom-0 z-5 transition-all duration-300"></div>
+      <!-- 3. 地板区域 (下半段 34%: 364px - 540px) -->
+      <div id="cardFloor" class="floor-surface absolute top-[364px] left-0 right-0 bottom-0 z-5 transition-all duration-300"></div>
 
-      <!-- 4. 关卡模式虚线剪影层 -->
-      <div id="silhouetteLayer" class="absolute inset-0 pointer-events-none z-15">
-        <!-- 动态生成虚线贴纸轮廓 -->
+      <!-- 4. 样板间纯净参考幽灵层 (默认隐藏，仅在点击“👁️ 样板”时可见，绝无红色虚线框！) -->
+      <div id="blueprintLayer" class="absolute inset-0 pointer-events-none z-10 hidden">
+        <!-- 纯净灰色幽灵贴纸轮廓，无刺眼边框 -->
       </div>
 
-      <!-- 5. 贴纸物理摆放容器 -->
+      <!-- 5. 贴纸物理摆放容器 (高层级 z-20，家具落地自然覆盖踢脚线，立视层次分明) -->
       <div id="stickerContainer" class="absolute inset-0 z-20">
         <!-- 贴纸节点在此渲染 -->
       </div>
@@ -395,8 +386,8 @@
     </div>
   </main>
 
-  <!-- 底部离型贴纸收纳册 (可收放抽屉) -->
-  <footer id="stickerDrawer" class="w-full max-w-lg bg-[#f5ede1] border-t-2 border-[#d9ccba] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] rounded-t-3xl overflow-hidden shrink-0 z-40 transition-transform duration-300">
+  <!-- 底部离型贴纸收纳册 (可收放抽屉，大卡片分类清晰) -->
+  <footer id="stickerDrawer" class="w-full max-w-md bg-[#f5ede1] border-t-2 border-[#d9ccba] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] rounded-t-3xl overflow-hidden shrink-0 z-40 transition-transform duration-300">
     
     <!-- 抽屉顶部手柄与分类 Tab -->
     <div id="drawerHeader" class="px-3 pt-2 pb-1.5 flex flex-col gap-1 border-b border-[#dfd0bd] bg-[#ece0ce]">
@@ -413,7 +404,7 @@
             🛋️ ②家具
           </button>
           <button data-cat="props" class="tab-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-            ☕ ③微缩
+            ☕ ③码货
           </button>
           <button data-cat="plants" class="tab-btn px-2.5 py-1 rounded-full text-xs font-semibold bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
             🌿 ④绿植
@@ -432,10 +423,28 @@
     </div>
 
     <!-- 贴纸网格选择器 -->
-    <div id="stickersGrid" class="p-3 grid grid-cols-4 sm:grid-cols-5 gap-2.5 overflow-y-auto max-h-[190px] no-scrollbar bg-[#f8f2e9]">
+    <div id="stickersGrid" class="p-3 grid grid-cols-4 gap-2.5 overflow-y-auto max-h-[190px] no-scrollbar bg-[#f8f2e9]">
       <!-- 动态填充当前分类贴纸 -->
     </div>
   </footer>
+
+  <!-- 📋 心愿清单弹窗 (清晰整洁的委托清单，告别花哨乱线) -->
+  <div id="checklistModal" class="fixed inset-0 bg-black/75 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-xs w-full flex flex-col gap-3 border border-[#e5d8c7] shadow-2xl relative">
+      <button id="closeChecklistBtn" class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">✕</button>
+      <div class="flex items-center gap-1.5">
+        <span class="text-xl">📋</span>
+        <h3 class="font-extrabold text-sm text-[#4a3b2b]">当前场景造景清单</h3>
+      </div>
+      <p class="text-[11px] text-[#8c7764]">从下方抽屉挑选心仪贴纸放入房间即可自动达成：</p>
+      <div id="checklistItems" class="flex flex-col gap-1.5 max-h-48 overflow-y-auto no-scrollbar">
+        <!-- 动态生成心愿清单项目 -->
+      </div>
+      <button id="doneChecklistBtn" class="w-full py-2 rounded-xl bg-amber-500 text-white font-bold text-xs shadow-xs active:scale-95">
+        好的，我去布置！
+      </button>
+    </div>
+  </div>
 
   <!-- 📖 DeepSeek AI 治愈手帐日记弹窗 -->
   <div id="aiDiaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
@@ -450,11 +459,10 @@
         </div>
       </div>
 
-      <!-- 牛皮纸质感手帐页面 -->
       <div class="bg-[#f5ede1] rounded-2xl p-3.5 border border-[#e8d7c2] shadow-inner flex flex-col gap-2 relative overflow-hidden">
         <div class="absolute -right-2 -bottom-2 text-4xl opacity-10 pointer-events-none">✨</div>
         <p id="diaryCardContent" class="text-xs leading-relaxed text-[#5c4735] font-serif min-h-[60px] flex items-center">
-          <span class="animate-pulse">DeepSeek 正在细细品味房间里的每一处光景，马上为您提笔...</span>
+          <span class="animate-pulse">DeepSeek 正在细细品味房间里的每一处陈设，马上为您提笔...</span>
         </p>
       </div>
 
@@ -481,7 +489,6 @@
         <p class="text-[11px] text-[#8c7764] mt-0.5">划开虚线撕开金箔，解锁稀有限定贴纸！</p>
       </div>
 
-      <!-- 金箔包装体 -->
       <div id="foilBag" class="w-56 h-64 rounded-2xl foil-metallic shadow-2xl p-4 flex flex-col items-center justify-between border-4 border-amber-300 relative overflow-hidden transition-all duration-500">
         <div class="text-[10px] font-black tracking-widest text-[#78350f] uppercase">LIMITED EDITION</div>
         <div class="text-center my-auto">
@@ -494,7 +501,6 @@
         </div>
       </div>
 
-      <!-- 抽中贴纸展示区 -->
       <div id="unboxedResult" class="hidden flex flex-col items-center gap-3 w-full animate-fade-in">
         <div class="text-xs font-extrabold text-amber-600">🎉 恭喜获得稀有闪卡！</div>
         <div id="unboxedCards" class="flex items-center justify-center gap-2"></div>
@@ -503,7 +509,6 @@
         </button>
       </div>
 
-      <!-- 金币购买盲袋按钮 (当没有盲袋时) -->
       <div id="buyBagSection" class="w-full hidden">
         <button id="buyBagBtn" class="w-full py-2 rounded-xl bg-amber-500 text-white font-bold text-xs shadow flex items-center justify-center gap-1">
           <span>200 🪙</span><span>购买新盲袋</span>
@@ -512,12 +517,12 @@
     </div>
   </div>
 
-  <!-- 🏆 关卡通关庆典弹窗 -->
+  <!-- 🏆 完美达成庆典弹窗 -->
   <div id="levelClearModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-xs w-full flex flex-col items-center gap-3.5 border-2 border-amber-400 shadow-2xl text-center">
       <div class="text-5xl animate-bounce">🏆</div>
       <div>
-        <h3 class="font-extrabold text-base text-[#4a3b2b]">完美复原！小院充满生机！</h3>
+        <h3 class="font-extrabold text-base text-[#4a3b2b]">造景完成！小院充满生机！</h3>
         <p class="text-xs text-[#8c7764] mt-0.5">你的造景审美太治愈了！</p>
       </div>
       <div class="bg-amber-50 border border-amber-200 rounded-2xl p-2.5 w-full flex items-center justify-around">
@@ -533,7 +538,7 @@
       </div>
       <div class="flex items-center gap-2 w-full">
         <button id="nextLevelBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold shadow-md active:scale-95">
-          挑战下一关 🚀
+          探索新主题 🚀
         </button>
         <button id="stayExploreBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-[#6d5b4a] text-xs font-bold active:scale-95">
           在房间玩耍 🐾
@@ -551,7 +556,7 @@
           <span class="text-xl">🔮</span>
           <h3 class="font-extrabold text-sm text-[#4a3b2b]">AI 双引擎 2D 模切贴纸工坊</h3>
         </div>
-        <p class="text-[11px] text-[#826f5d] mt-0.5">DeepSeek 扩写 2D 提示词 + Grok 绘制纯平面模切贴纸！</p>
+        <p class="text-[11px] text-[#826f5d] mt-0.5">DeepSeek 优化提示词 + Grok 绘制纯 2D 平面模切贴纸！</p>
       </div>
       <div class="flex flex-col gap-2">
         <input id="aiInput" type="text" placeholder="如：日系复古三层餐边柜、抹茶蛋糕..." class="w-full px-3 py-2 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
@@ -564,7 +569,7 @@
     </div>
   </div>
 
-  <!-- 🎨 房间风格切换弹窗 (自由造景模式) -->
+  <!-- 🎨 房间风格切换弹窗 -->
   <div id="themeModal" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-xs w-full flex flex-col gap-3 border border-[#e5d8c7] shadow-2xl relative">
       <button id="closeThemeBtn" class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">✕</button>
@@ -572,19 +577,19 @@
         <span>🎨</span><span>挑选房间内饰风格</span>
       </h3>
       <div class="grid grid-cols-2 gap-2 mt-1">
-        <button data-theme="sunset" class="theme-select-btn p-2 rounded-xl border-2 border-amber-500 bg-amber-50 flex flex-col items-center gap-1">
+        <button data-theme="sunset" class="theme-select-btn p-2.5 rounded-xl border-2 border-amber-500 bg-amber-50 flex flex-col items-center gap-1">
           <span class="text-xl">☕</span>
           <span class="text-xs font-bold text-amber-900">街角日落</span>
         </button>
-        <button data-theme="sage" class="theme-select-btn p-2 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
+        <button data-theme="sage" class="theme-select-btn p-2.5 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
           <span class="text-xl">📚</span>
           <span class="text-xs font-bold text-stone-800">英伦墨绿</span>
         </button>
-        <button data-theme="cream" class="theme-select-btn p-2 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
+        <button data-theme="cream" class="theme-select-btn p-2.5 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
           <span class="text-xl">🌿</span>
           <span class="text-xs font-bold text-stone-800">法式奶油</span>
         </button>
-        <button data-theme="midnight" class="theme-select-btn p-2 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
+        <button data-theme="midnight" class="theme-select-btn p-2.5 rounded-xl border border-[#d8c8b5] bg-white flex flex-col items-center gap-1">
           <span class="text-xl">🌙</span>
           <span class="text-xs font-bold text-stone-800">午夜暖炉</span>
         </button>
@@ -592,14 +597,13 @@
     </div>
   </div>
 
-  <!-- 📸 拍立得手帐照片预览导出弹窗 (带 DeepSeek 手记印章) -->
+  <!-- 📸 拍立得手帐照片预览导出弹窗 -->
   <div id="exportModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-4 max-w-xs w-full flex flex-col items-center gap-3 border border-[#e5d8c7] shadow-2xl">
       <div class="text-center">
         <h3 class="font-black text-sm text-[#4a3b2b]">🎉 你的手帐拍立得已冲印完成！</h3>
         <p class="text-[10px] text-[#826f5d] mt-0.5">长按或点击下载，保存属于你的微缩物语</p>
       </div>
-      <!-- 拍立得纸相框 -->
       <div class="w-full bg-white p-3 rounded-2xl shadow-xl flex flex-col items-center gap-2 border border-stone-200">
         <div class="w-full rounded-xl overflow-hidden border border-stone-300">
           <img id="exportPreview" src="" alt="Polaroid View" class="w-full h-auto block">
@@ -692,10 +696,10 @@
         if (!this.ctx) return;
         try {
           const chords = [
-            [261.63, 329.63, 392.00, 493.88], // Cmaj7
-            [220.00, 261.63, 329.63, 392.00], // Am7
-            [174.61, 220.00, 261.63, 329.63], // Fmaj7
-            [196.00, 246.94, 293.66, 349.23]  // G7
+            [261.63, 329.63, 392.00, 493.88],
+            [220.00, 261.63, 329.63, 392.00],
+            [174.61, 220.00, 261.63, 329.63],
+            [196.00, 246.94, 293.66, 349.23]
           ];
           let step = 0;
           const playChord = () => {
@@ -803,132 +807,138 @@
     const audio = new SoundEngine();
 
     /* ==========================================================================
-       2. 严密比例的纯 2D 平面贴纸库 (针对 380x500 标准卡砖空间定制)
+       2. 放大 30% 且比例严整的纯 2D 贴纸全量图库 (400x540 大手帐规格)
        ========================================================================== */
     const ALL_STICKERS = [
       // 🪟 门窗与天花板垂挂
-      { id: 'flat_arch_window', cat: 'windows', baseZ: 5, name: '拱形日落窗景', img: './assets/flat_arch_window.png', width: 140, height: 165 },
-      { id: 'flat_square_window', cat: 'windows', baseZ: 5, name: '绿意方格木窗', img: './assets/flat_square_window.png', width: 135, height: 135 },
-      { id: 'flat_hanging_vines', cat: 'windows', baseZ: 85, name: '天花板垂挂绿萝', img: './assets/flat_hanging_vines.png', width: 190, height: 85 },
-      { id: 'stk_wall_shelf', cat: 'windows', baseZ: 10, name: '极简原木壁挂架', img: './assets/stk_wall_shelf.png', width: 130, height: 55 },
+      { id: 'flat_arch_window', cat: 'windows', baseZ: 5, name: '拱形日落窗景', img: './assets/flat_arch_window.png', width: 155, height: 185 },
+      { id: 'flat_square_window', cat: 'windows', baseZ: 5, name: '绿意方格木窗', img: './assets/flat_square_window.png', width: 145, height: 145 },
+      { id: 'flat_hanging_vines', cat: 'windows', baseZ: 85, name: '天花板垂挂绿萝', img: './assets/flat_hanging_vines.png', width: 210, height: 95 },
+      { id: 'stk_wall_shelf', cat: 'windows', baseZ: 10, name: '极简原木壁挂架', img: './assets/stk_wall_shelf.png', width: 140, height: 60 },
 
-      // 🛋️ 桌椅大件
-      { id: 'flat_desk', cat: 'furniture', baseZ: 25, name: '平直原木吧台桌', img: './assets/flat_desk.png', width: 170, height: 115 },
-      { id: 'flat_sofa', cat: 'furniture', baseZ: 22, name: '复古暖黄皮沙发', img: './assets/flat_sofa.png', width: 160, height: 115 },
-      { id: 'flat_bookshelf', cat: 'furniture', baseZ: 20, name: '多层立式大书架', img: './assets/flat_bookshelf.png', width: 115, height: 180 },
-      { id: 'flat_bed', cat: 'furniture', baseZ: 18, name: '舒适棉麻双人床', img: './assets/flat_bed.png', width: 180, height: 125 },
-      { id: 'flat_piano', cat: 'furniture', baseZ: 24, name: '复古立式小钢琴', img: './assets/flat_piano.png', width: 150, height: 130 },
-      { id: 'stk_coffee_table', cat: 'furniture', baseZ: 26, name: '原木椭圆矮茶几', img: './assets/stk_coffee_table.png', width: 130, height: 75 },
-      { id: 'stk_rug_boho', cat: 'furniture', baseZ: 8, name: '波西米亚织花地毯', img: './assets/stk_rug_boho.png', width: 170, height: 70 },
+      // 🛋️ 大型家具 (桌面高平立面，底边稳稳落地)
+      { id: 'flat_desk', cat: 'furniture', baseZ: 25, name: '平直原木吧台桌', img: './assets/flat_desk.png', width: 185, height: 125 },
+      { id: 'flat_sofa', cat: 'furniture', baseZ: 22, name: '复古暖黄皮沙发', img: './assets/flat_sofa.png', width: 175, height: 125 },
+      { id: 'flat_bookshelf', cat: 'furniture', baseZ: 20, name: '多层立式大书架', img: './assets/flat_bookshelf.png', width: 125, height: 195 },
+      { id: 'flat_bed', cat: 'furniture', baseZ: 18, name: '舒适棉麻双人床', img: './assets/flat_bed.png', width: 195, height: 135 },
+      { id: 'flat_piano', cat: 'furniture', baseZ: 24, name: '复古立式小钢琴', img: './assets/flat_piano.png', width: 165, height: 140 },
+      { id: 'stk_coffee_table', cat: 'furniture', baseZ: 26, name: '原木椭圆矮茶几', img: './assets/stk_coffee_table.png', width: 140, height: 80 },
+      { id: 'stk_rug_boho', cat: 'furniture', baseZ: 8, name: '波西米亚织花地毯', img: './assets/stk_rug_boho.png', width: 185, height: 75 },
 
-      // ☕ 桌面微缩与道具 (带拟真互动)
-      { id: 'flat_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/flat_lamp.png', width: 68, height: 95, isInteractive: true },
-      { id: 'flat_breakfast', cat: 'props', baseZ: 65, name: '热拿铁吐司托盘', img: './assets/flat_breakfast.png', width: 75, height: 60, isInteractive: true },
-      { id: 'flat_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/flat_record_player.png', width: 75, height: 68, isInteractive: true },
-      { id: 'flat_books_stack', cat: 'props', baseZ: 65, name: '叠放精装书与眼镜', img: './assets/flat_books_stack.png', width: 68, height: 58 },
-      { id: 'flat_tulips', cat: 'props', baseZ: 55, name: '玻璃瓶粉红郁金香', img: './assets/flat_tulips.png', width: 58, height: 78 },
+      // ☕ 桌面码货与道具 (带拟真交互)
+      { id: 'flat_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/flat_lamp.png', width: 72, height: 100, isInteractive: true },
+      { id: 'flat_breakfast', cat: 'props', baseZ: 65, name: '热拿铁吐司托盘', img: './assets/flat_breakfast.png', width: 82, height: 68, isInteractive: true },
+      { id: 'flat_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/flat_record_player.png', width: 82, height: 75, isInteractive: true },
+      { id: 'flat_books_stack', cat: 'props', baseZ: 65, name: '叠放精装书与眼镜', img: './assets/flat_books_stack.png', width: 75, height: 65 },
+      { id: 'flat_tulips', cat: 'props', baseZ: 55, name: '玻璃瓶粉红郁金香', img: './assets/flat_tulips.png', width: 62, height: 85 },
 
       // 🌿 治愈绿植
-      { id: 'flat_monstera', cat: 'plants', baseZ: 30, name: '陶土盆大龟背竹', img: './assets/flat_monstera.png', width: 88, height: 125 },
-      { id: 'stk_succulent_shelf', cat: 'plants', baseZ: 32, name: '多肉植物木花架', img: './assets/stk_succulent_shelf.png', width: 85, height: 110 },
+      { id: 'flat_monstera', cat: 'plants', baseZ: 30, name: '陶土盆大龟背竹', img: './assets/flat_monstera.png', width: 95, height: 135 },
+      { id: 'stk_succulent_shelf', cat: 'plants', baseZ: 32, name: '多肉植物木花架', img: './assets/stk_succulent_shelf.png', width: 90, height: 120 },
 
-      // 🐱 治愈萌宠 (带呼吸与互动呼噜)
-      { id: 'flat_cat_orange', cat: 'pets', baseZ: 70, name: '熟睡卷卷橘猫', img: './assets/flat_cat_orange.png', width: 78, height: 62, isInteractive: true },
-      { id: 'flat_shiba', cat: 'pets', baseZ: 70, name: '趴窝暖阳小柴犬', img: './assets/flat_shiba.png', width: 82, height: 65, isInteractive: true },
-      { id: 'stk_ragdoll', cat: 'pets', baseZ: 72, name: '优雅趴卧布偶猫', img: './assets/stk_ragdoll.png', width: 85, height: 70, isInteractive: true }
+      // 🐱 治愈萌宠
+      { id: 'flat_cat_orange', cat: 'pets', baseZ: 70, name: '熟睡卷卷橘猫', img: './assets/flat_cat_orange.png', width: 85, height: 68, isInteractive: true },
+      { id: 'flat_shiba', cat: 'pets', baseZ: 70, name: '趴窝暖阳小柴犬', img: './assets/flat_shiba.png', width: 88, height: 70, isInteractive: true },
+      { id: 'stk_ragdoll', cat: 'pets', baseZ: 72, name: '优雅趴卧布偶猫', img: './assets/stk_ragdoll.png', width: 90, height: 75, isInteractive: true }
     ];
 
     // 🎁 盲袋稀有限定图库
     const RARE_STICKERS = [
-      { id: 'rare_corgi', cat: 'collection', baseZ: 72, name: '✨ 摇尾短腿柯基', img: './assets/stk_corgi.png', width: 82, height: 68, isInteractive: true },
-      { id: 'rare_croissant', cat: 'collection', baseZ: 65, name: '✨ 金黄草莓可颂', img: './assets/stk_croissant.png', width: 70, height: 55 },
-      { id: 'rare_fireflies', cat: 'collection', baseZ: 75, name: '✨ 微光流萤魔瓶', img: './assets/stk_fireflies.png', width: 65, height: 85 },
-      { id: 'rare_tea_set', cat: 'collection', baseZ: 65, name: '✨ 维多利亚花茶具', img: './assets/stk_tea_set.png', width: 72, height: 60 },
-      { id: 'rare_pouf', cat: 'collection', baseZ: 28, name: '✨ 羊羔绒软榻坐墩', img: './assets/stk_pouf.png', width: 85, height: 65 }
+      { id: 'rare_corgi', cat: 'collection', baseZ: 72, name: '✨ 摇尾短腿柯基', img: './assets/stk_corgi.png', width: 88, height: 72, isInteractive: true },
+      { id: 'rare_croissant', cat: 'collection', baseZ: 65, name: '✨ 金黄草莓可颂', img: './assets/stk_croissant.png', width: 75, height: 60 },
+      { id: 'rare_fireflies', cat: 'collection', baseZ: 75, name: '✨ 微光流萤魔瓶', img: './assets/stk_fireflies.png', width: 70, height: 90 },
+      { id: 'rare_tea_set', cat: 'collection', baseZ: 65, name: '✨ 维多利亚花茶具', img: './assets/stk_tea_set.png', width: 78, height: 65 },
+      { id: 'rare_pouf', cat: 'collection', baseZ: 28, name: '✨ 羊羔绒软榻坐墩', img: './assets/stk_pouf.png', width: 90, height: 70 }
     ];
 
     /* ==========================================================================
-       3. 5 大沉浸关卡挑战配置 (Unpacking 复原流，内部 380x500 绝对坐标，严禁悬空)
+       3. 5 大主题心愿与灵感样板（坐标经过严格空间分离计算，零重叠冲突）
        ========================================================================== */
-    const CHALLENGE_LEVELS = [
+    const THEME_BLUEPRINTS = [
       {
         id: 1,
         title: '第 1 关 · 街角日落咖啡馆',
         icon: '☕',
-        rewardCoins: 300,
         theme: 'sunset',
-        hint: '贴上日落窗景，摆放吧台与暖黄皮沙发，再添上一杯热咖啡与贪睡橘猫',
-        targets: [
-          { tplId: 'flat_arch_window', x: 120, y: 25 },
-          { tplId: 'flat_desk', x: 105, y: 250 },
-          { tplId: 'flat_lamp', x: 115, y: 190 },
-          { tplId: 'flat_breakfast', x: 195, y: 220 },
-          { tplId: 'flat_sofa', x: 15, y: 275 },
-          { tplId: 'flat_cat_orange', x: 235, y: 345 }
+        rewardCoins: 300,
+        hint: '在夕阳窗边，布置原木吧台、皮沙发与热咖啡，呼唤小橘猫',
+        wishlist: ['flat_arch_window', 'flat_desk', 'flat_sofa', 'flat_lamp', 'flat_breakfast', 'flat_cat_orange'],
+        // 样板间参考摆放 (沙发在左 X:18，吧台在右 X:195，两物毫无干涉碰撞！)
+        layout: [
+          { tplId: 'flat_arch_window', x: 125, y: 35 },
+          { tplId: 'flat_sofa', x: 18, y: 280 },
+          { tplId: 'flat_desk', x: 195, y: 260 },
+          { tplId: 'flat_lamp', x: 205, y: 195 },
+          { tplId: 'flat_breakfast', x: 285, y: 228 },
+          { tplId: 'flat_cat_orange', x: 155, y: 380 }
         ]
       },
       {
         id: 2,
         title: '第 2 关 · 暖阳橘猫书房',
         icon: '📚',
-        rewardCoins: 400,
         theme: 'sage',
-        hint: '安装方格木窗，垂挂青翠绿萝，安顿大书架、棉麻床与守候的小柴犬',
-        targets: [
+        rewardCoins: 400,
+        hint: '方格木窗、多层大书架、棉麻床与守候在门前的小柴犬',
+        wishlist: ['flat_square_window', 'flat_hanging_vines', 'flat_bookshelf', 'flat_bed', 'flat_books_stack', 'flat_shiba'],
+        layout: [
           { tplId: 'flat_square_window', x: 35, y: 35 },
           { tplId: 'flat_hanging_vines', x: 100, y: 0 },
-          { tplId: 'flat_bookshelf', x: 235, y: 150 },
-          { tplId: 'flat_bed', x: 30, y: 255 },
-          { tplId: 'flat_books_stack', x: 245, y: 220 },
-          { tplId: 'flat_shiba', x: 155, y: 340 }
+          { tplId: 'flat_bookshelf', x: 255, y: 165 },
+          { tplId: 'flat_bed', x: 25, y: 275 },
+          { tplId: 'flat_books_stack', x: 265, y: 240 },
+          { tplId: 'flat_shiba', x: 160, y: 375 }
         ]
       },
       {
         id: 3,
         title: '第 3 关 · 惬意音乐沙龙',
         icon: '🎹',
-        rewardCoins: 500,
         theme: 'cream',
-        hint: '摆放经典立式钢琴与黑胶唱机，角落点缀大盆绿植与郁金香',
-        targets: [
-          { tplId: 'flat_arch_window', x: 40, y: 25 },
-          { tplId: 'flat_piano', x: 190, y: 225 },
-          { tplId: 'flat_record_player', x: 240, y: 175 },
-          { tplId: 'flat_tulips', x: 195, y: 170 },
-          { tplId: 'flat_monstera', x: 15, y: 250 },
-          { tplId: 'flat_cat_orange', x: 125, y: 340 }
+        rewardCoins: 500,
+        hint: '复古立式小钢琴、黑胶唱机、龟背竹与优雅布偶猫',
+        wishlist: ['flat_arch_window', 'flat_piano', 'flat_record_player', 'flat_tulips', 'flat_monstera', 'stk_ragdoll'],
+        layout: [
+          { tplId: 'flat_arch_window', x: 35, y: 35 },
+          { tplId: 'flat_piano', x: 205, y: 240 },
+          { tplId: 'flat_record_player', x: 255, y: 190 },
+          { tplId: 'flat_tulips', x: 210, y: 185 },
+          { tplId: 'flat_monstera', x: 18, y: 265 },
+          { tplId: 'stk_ragdoll', x: 135, y: 375 }
         ]
       },
       {
         id: 4,
         title: '第 4 关 · 晨光绿意花房',
         icon: '🌿',
-        rewardCoins: 550,
         theme: 'cream',
-        hint: '阳光漫溢的白墙小舍，布置多肉花架、龟背竹与优雅布偶猫',
-        targets: [
-          { tplId: 'flat_arch_window', x: 120, y: 25 },
-          { tplId: 'stk_succulent_shelf', x: 30, y: 235 },
-          { tplId: 'flat_monstera', x: 260, y: 230 },
-          { tplId: 'stk_wall_shelf', x: 125, y: 150 },
-          { tplId: 'flat_tulips', x: 165, y: 105 },
-          { tplId: 'stk_ragdoll', x: 150, y: 340 }
+        rewardCoins: 550,
+        hint: '明亮通透的阳光窗前，多肉花架、大龟背竹与布偶猫',
+        wishlist: ['flat_arch_window', 'stk_succulent_shelf', 'flat_monstera', 'stk_wall_shelf', 'flat_tulips', 'flat_cat_orange'],
+        layout: [
+          { tplId: 'flat_arch_window', x: 125, y: 35 },
+          { tplId: 'stk_succulent_shelf', x: 20, y: 255 },
+          { tplId: 'flat_monstera', x: 280, y: 250 },
+          { tplId: 'stk_wall_shelf', x: 130, y: 160 },
+          { tplId: 'flat_tulips', x: 170, y: 115 },
+          { tplId: 'flat_cat_orange', x: 155, y: 375 }
         ]
       },
       {
         id: 5,
         title: '第 5 关 · 午夜暖炉寝室',
         icon: '🌙',
-        rewardCoins: 600,
         theme: 'midnight',
-        hint: '夜幕降临星光点点，在波西米亚地毯与棉麻床上静听心语',
-        targets: [
+        rewardCoins: 600,
+        hint: '深蓝夜幕下，在波西米亚地毯与暖和棉麻床上静听心语',
+        wishlist: ['flat_square_window', 'flat_bed', 'flat_lamp', 'stk_rug_boho', 'flat_books_stack', 'flat_shiba'],
+        layout: [
           { tplId: 'flat_square_window', x: 35, y: 35 },
-          { tplId: 'flat_bed', x: 160, y: 250 },
-          { tplId: 'flat_lamp', x: 105, y: 240 },
-          { tplId: 'stk_rug_boho', x: 105, y: 350 },
-          { tplId: 'flat_books_stack', x: 50, y: 320 },
-          { tplId: 'flat_cat_orange', x: 155, y: 355 }
+          { tplId: 'flat_bed', x: 175, y: 275 },
+          { tplId: 'flat_lamp', x: 110, y: 260 },
+          { tplId: 'stk_rug_boho', x: 105, y: 385 },
+          { tplId: 'flat_books_stack', x: 45, y: 340 },
+          { tplId: 'flat_shiba', x: 155, y: 380 }
         ]
       }
     ];
@@ -938,9 +948,9 @@
        ========================================================================== */
     class DioramaApp {
       constructor() {
-        this.CARD_WIDTH = 380;
-        this.CARD_HEIGHT = 500;
-        this.FLOOR_Y = 334; // 地面分割线
+        this.CARD_WIDTH = 400;
+        this.CARD_HEIGHT = 540;
+        this.FLOOR_Y = 364; // 实木地板基准分割线
 
         // 持久化存储
         this.coins = parseInt(localStorage.getItem('diorama_coins') || '350');
@@ -948,7 +958,8 @@
         this.unlockedRares = JSON.parse(localStorage.getItem('diorama_rares') || '[]');
         this.curLevelIdx = parseInt(localStorage.getItem('diorama_level') || '0');
         this.currentTheme = 'sunset';
-        this.gameMode = 'challenge'; // 'challenge' 关卡挑战 | 'free' 自由造景
+        this.gameMode = 'free'; // 默认纯净自由造景模式，开局洁白无瑕！
+        this.showBlueprint = false; // 样板幽灵参考开关
 
         this.placedStickers = [];
         this.activeUid = null;
@@ -961,11 +972,11 @@
           quote: '夕阳斜斜照在木桌上，小猫正睡得香甜。✨'
         };
 
-        // DOM 元素缓存
+        // DOM 缓存
         this.cardWrapper = document.getElementById('sceneCardWrapper');
         this.card = document.getElementById('sceneCard');
         this.container = document.getElementById('stickerContainer');
-        this.silhouetteLayer = document.getElementById('silhouetteLayer');
+        this.blueprintLayer = document.getElementById('blueprintLayer');
         this.selectionOverlay = document.getElementById('selectionOverlay');
         this.selectionRing = document.getElementById('selectionRing');
         this.drawer = document.getElementById('stickerDrawer');
@@ -985,26 +996,22 @@
         window.addEventListener('resize', () => this.resizeCard());
         window.addEventListener('orientationchange', () => this.resizeCard());
 
-        if (this.gameMode === 'challenge') {
-          this.loadChallenge(this.curLevelIdx);
-        } else {
-          this.applyTheme(this.currentTheme);
-        }
+        // 默认应用温馨日落主题，保持开局干干净净
+        this.applyTheme(this.currentTheme);
       }
 
-      // 动态自适应卡片居中缩放
+      // 动态自适应屏幕：在手机上紧凑优雅铺展，无巨幅暗黑边框
       resizeCard() {
-        const availW = window.innerWidth * 0.94;
-        const availH = window.innerHeight - 60 - 240;
+        const availW = window.innerWidth * 0.95;
+        const availH = window.innerHeight - 56 - 230; // 留足顶部 HUD 与抽屉高度
         const scaleX = availW / this.CARD_WIDTH;
         const scaleY = availH / this.CARD_HEIGHT;
-        const scale = Math.max(0.62, Math.min(scaleX, scaleY, 1.15));
+        const scale = Math.max(0.68, Math.min(scaleX, scaleY, 1.25));
         
         this.card.style.transform = `scale(${scale})`;
         this.cardScale = scale;
       }
 
-      // 获取屏幕坐标在卡片 380x500 内的换算坐标
       getCardCoords(clientX, clientY) {
         const rect = this.card.getBoundingClientRect();
         return {
@@ -1027,87 +1034,74 @@
         localStorage.setItem('diorama_level', this.curLevelIdx);
       }
 
-      // 加载关卡
-      loadChallenge(lvlIdx) {
-        this.curLevelIdx = lvlIdx % CHALLENGE_LEVELS.length;
-        const lvl = CHALLENGE_LEVELS[this.curLevelIdx];
-
-        document.getElementById('levelTitle').innerText = lvl.title;
-        document.getElementById('levelIcon').innerText = lvl.icon;
-        document.getElementById('levelRewardBadge').innerText = `★ ${lvl.rewardCoins} 🪙`;
-        document.getElementById('levelStepHint').innerText = lvl.hint;
-
-        this.applyTheme(lvl.theme);
-        this.placedStickers = [];
-        this.deselectAll();
-        this.renderAll();
-        this.renderSilhouettes(lvl);
-        this.updateProgress();
-      }
-
       applyTheme(themeKey) {
         this.currentTheme = themeKey;
         this.card.className = `theme-${themeKey} select-none`;
         this.resizeCard();
       }
 
-      renderSilhouettes(lvl) {
-        this.silhouetteLayer.innerHTML = '';
-        if (this.gameMode !== 'challenge') return;
+      // 渲染样板间灵感参考（纯净幽灵灰度图，完全没有刺眼的红色虚线框）
+      renderBlueprint(bp) {
+        this.blueprintLayer.innerHTML = '';
+        if (!this.showBlueprint || !bp) return;
 
-        lvl.targets.forEach((tgt, idx) => {
-          const tpl = [...ALL_STICKERS, ...RARE_STICKERS].find(s => s.id === tgt.tplId);
+        bp.layout.forEach(item => {
+          const tpl = [...ALL_STICKERS, ...RARE_STICKERS].find(s => s.id === item.tplId);
           if (!tpl) return;
 
+          const isPlaced = this.placedStickers.some(s => s.templateId === item.tplId);
+
           const el = document.createElement('div');
-          el.id = `guide_${idx}`;
-          el.className = 'silhouette-guide';
+          el.className = `blueprint-ghost ${isPlaced ? 'is-completed' : ''}`;
           el.style.width = tpl.width + 'px';
           el.style.height = tpl.height + 'px';
-          el.style.left = tgt.x + 'px';
-          el.style.top = tgt.y + 'px';
-          el.innerHTML = `<img src="${tpl.img}" alt="guide">`;
-          this.silhouetteLayer.appendChild(el);
+          el.style.left = item.x + 'px';
+          el.style.top = item.y + 'px';
+          el.innerHTML = `<img src="${tpl.img}" alt="ghost">`;
+          this.blueprintLayer.appendChild(el);
         });
       }
 
-      updateProgress() {
-        if (this.gameMode !== 'challenge') return;
-        const lvl = CHALLENGE_LEVELS[this.curLevelIdx];
-        let matchedCount = 0;
+      // 检查清单达成状态
+      updateChecklistProgress() {
+        const bp = THEME_BLUEPRINTS[this.curLevelIdx];
+        if (!bp) return;
 
-        lvl.targets.forEach((tgt, idx) => {
-          const guideEl = document.getElementById(`guide_${idx}`);
-          const matched = this.placedStickers.find(stk => {
-            if (stk.templateId !== tgt.tplId) return false;
-            const cx = stk.x + stk.width / 2;
-            const cy = stk.y + stk.height / 2;
-            const targetCenterX = tgt.x + stk.width / 2;
-            const targetCenterY = tgt.y + stk.height / 2;
-            return Math.hypot(cx - targetCenterX, cy - targetCenterY) < 45;
-          });
+        let completed = 0;
+        const itemsContainer = document.getElementById('checklistItems');
+        
+        const html = bp.wishlist.map(tplId => {
+          const tpl = [...ALL_STICKERS, ...RARE_STICKERS].find(s => s.id === tplId);
+          const done = this.placedStickers.some(s => s.templateId === tplId);
+          if (done) completed++;
 
-          if (matched) {
-            matchedCount++;
-            if (guideEl) guideEl.classList.add('is-placed');
-          } else {
-            if (guideEl) guideEl.classList.remove('is-placed');
-          }
-        });
+          return `
+            <div class="flex items-center justify-between p-1.5 rounded-xl ${done ? 'bg-emerald-50 text-emerald-800' : 'bg-stone-100 text-stone-600'} text-xs">
+              <span class="flex items-center gap-1.5">
+                <span>${done ? '✅' : '⚪'}</span>
+                <span class="font-medium">${tpl ? tpl.name : tplId}</span>
+              </span>
+              <span class="text-[10px] ${done ? 'text-emerald-600 font-bold' : 'text-stone-400'}">${done ? '已就位' : '待布置'}</span>
+            </div>
+          `;
+        }).join('');
 
-        const pct = Math.round((matchedCount / lvl.targets.length) * 100);
-        document.getElementById('levelProgressBar').style.width = pct + '%';
-        document.getElementById('levelProgressText').innerText = pct + '%';
+        itemsContainer.innerHTML = html;
+        document.getElementById('wishlistCount').innerText = `${completed}/${bp.wishlist.length}`;
 
-        // 100% 完美通关
-        if (pct === 100 && this.placedStickers.length >= lvl.targets.length) {
-          setTimeout(() => this.triggerVictory(lvl), 400);
+        if (this.showBlueprint) {
+          this.renderBlueprint(bp);
+        }
+
+        // 委托全部完成触发庆祝
+        if (this.gameMode === 'wishlist' && completed === bp.wishlist.length && bp.wishlist.length > 0) {
+          setTimeout(() => this.triggerVictory(bp), 400);
         }
       }
 
-      triggerVictory(lvl) {
+      triggerVictory(bp) {
         audio.playFanfare();
-        this.coins += lvl.rewardCoins;
+        this.coins += bp.rewardCoins;
         this.blindBags += 1;
         this.updateHUD();
 
@@ -1117,7 +1111,6 @@
         document.getElementById('levelClearModal').classList.remove('hidden');
       }
 
-      // 渲染底部贴纸抽屉
       renderDrawer(cat) {
         this.curCategory = cat;
         let list = [];
@@ -1131,7 +1124,7 @@
         if (list.length === 0) {
           if (cat === 'collection') {
             this.grid.innerHTML = `
-              <div class="col-span-4 sm:col-span-5 py-6 text-center text-xs text-[#8c7866] flex flex-col items-center gap-1">
+              <div class="col-span-4 py-6 text-center text-xs text-[#8c7866] flex flex-col items-center gap-1">
                 <span>🎁 暂无盲袋收藏！</span>
                 <span class="text-[11px] text-amber-600 font-bold">快去左上角「🎁 拆盲袋」抽取稀有限定贴纸！</span>
               </div>
@@ -1143,8 +1136,8 @@
         }
 
         this.grid.innerHTML = list.map(item => `
-          <div class="bg-white rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#decbb8] shadow-xs cursor-pointer active:scale-90 transition-all" data-id="${item.id}">
-            <div class="w-full h-12 flex items-center justify-center p-0.5 pointer-events-none">
+          <div class="bg-white rounded-2xl p-2 flex flex-col items-center justify-between border border-[#decbb8] shadow-xs cursor-pointer active:scale-90 transition-all" data-id="${item.id}">
+            <div class="w-full h-14 flex items-center justify-center p-0.5 pointer-events-none">
               <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain filter drop-shadow(0 2px 4px rgba(0,0,0,0.12))">
             </div>
             <span class="text-[10px] text-[#735e4b] font-medium tracking-tight mt-1 truncate w-full text-center pointer-events-none">
@@ -1168,6 +1161,7 @@
 
         audio.playRip();
 
+        // 智能定位：如果是家具萌宠，底边自然落在木地板基准线上
         let posX = coords ? coords.x : (this.CARD_WIDTH / 2 - tpl.width / 2);
         let posY = coords ? coords.y : (this.CARD_HEIGHT / 2 - tpl.height / 2);
 
@@ -1199,7 +1193,7 @@
         this.selectSticker(item.uid);
 
         setTimeout(() => audio.playStick(), 50);
-        this.updateProgress();
+        this.updateChecklistProgress();
       }
 
       renderAll() {
@@ -1270,13 +1264,13 @@
           let targetX = origX + deltaX;
           let targetY = origY + deltaY;
 
-          // 物理平直地面磁吸 (落地稳稳不悬空)
+          // 物理平直地面柔和磁吸 (脚踏实地，不切断家具)
           const bottomY = targetY + item.height * item.scale;
           if (Math.abs(bottomY - (this.FLOOR_Y + 50)) < 18) {
             targetY = (this.FLOOR_Y + 50) - item.height * item.scale;
           }
 
-          // 天花板磁吸
+          // 天花板吸附
           if (item.templateId === 'flat_hanging_vines' && targetY < 20) {
             targetY = 0;
           }
@@ -1300,7 +1294,7 @@
             this.handleStickerInteraction(item);
           }
 
-          this.updateProgress();
+          this.updateChecklistProgress();
         };
 
         el.addEventListener('pointerdown', onPointerDown);
@@ -1394,7 +1388,7 @@
           this.deselectAll();
           this.renderAll();
           audio.playRip();
-          this.updateProgress();
+          this.updateChecklistProgress();
         });
 
         // 置顶/置底层级
@@ -1460,27 +1454,63 @@
           }
         });
 
+        // 模式切换：自由造景 vs 心愿委托
         const modeBtn = document.getElementById('modeToggleBtn');
+        const wishlistBanner = document.getElementById('wishlistBanner');
         modeBtn.addEventListener('click', () => {
           audio.playClick();
-          if (this.gameMode === 'challenge') {
+          if (this.gameMode === 'free') {
+            this.gameMode = 'wishlist';
+            document.getElementById('modeIcon').innerText = '📋';
+            document.getElementById('modeName').innerText = '心愿委托';
+            wishlistBanner.classList.remove('hidden');
+            const bp = THEME_BLUEPRINTS[this.curLevelIdx];
+            if (bp) {
+              document.getElementById('levelTitle').innerText = bp.title;
+              document.getElementById('levelHint').innerText = bp.hint;
+              this.applyTheme(bp.theme);
+            }
+            this.updateChecklistProgress();
+          } else {
             this.gameMode = 'free';
             document.getElementById('modeIcon').innerText = '🎨';
             document.getElementById('modeName').innerText = '自由造景';
-            document.getElementById('levelBanner').classList.add('hidden');
-            document.getElementById('themePickerBtn').classList.remove('hidden');
-            this.silhouetteLayer.innerHTML = '';
-          } else {
-            this.gameMode = 'challenge';
-            document.getElementById('modeIcon').innerText = '🧩';
-            document.getElementById('modeName').innerText = '关卡挑战';
-            document.getElementById('levelBanner').classList.remove('hidden');
-            document.getElementById('themePickerBtn').classList.add('hidden');
-            this.loadChallenge(this.curLevelIdx);
+            wishlistBanner.classList.add('hidden');
+            this.blueprintLayer.classList.add('hidden');
+            this.showBlueprint = false;
           }
           this.resizeCard();
         });
 
+        // 样板参考切换开关
+        const toggleBpBtn = document.getElementById('toggleBlueprintBtn');
+        toggleBpBtn.addEventListener('click', () => {
+          audio.playClick();
+          this.showBlueprint = !this.showBlueprint;
+          if (this.showBlueprint) {
+            this.blueprintLayer.classList.remove('hidden');
+            toggleBpBtn.classList.add('text-amber-400');
+            const bp = THEME_BLUEPRINTS[this.curLevelIdx];
+            this.renderBlueprint(bp);
+          } else {
+            this.blueprintLayer.classList.add('hidden');
+            toggleBpBtn.classList.remove('text-amber-400');
+          }
+        });
+
+        // 心愿清单弹窗
+        const checklistModal = document.getElementById('checklistModal');
+        document.getElementById('openChecklistBtn').addEventListener('click', () => {
+          checklistModal.classList.remove('hidden');
+        });
+        document.getElementById('closeChecklistBtn').addEventListener('click', () => {
+          checklistModal.classList.add('hidden');
+        });
+        document.getElementById('doneChecklistBtn').addEventListener('click', () => {
+          checklistModal.classList.add('hidden');
+        });
+
+        // 抽屉分类切换
         document.getElementById('categoryTabs').addEventListener('click', (e) => {
           const btn = e.target.closest('.tab-btn');
           if (!btn) return;
@@ -1494,6 +1524,7 @@
           this.renderDrawer(btn.getAttribute('data-cat'));
         });
 
+        // 抽屉展开折叠
         const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
         let drawerOpen = true;
         toggleDrawerBtn.addEventListener('click', () => {
@@ -1508,20 +1539,23 @@
           }
         });
 
+        // 清空
         document.getElementById('clearStageBtn').addEventListener('click', () => {
-          if (confirm('确定要清空当前场景的所有贴纸吗？')) {
+          if (confirm('确定要清空当前场景的所有贴纸吗？开局将重新恢复洁净。')) {
             audio.playRip();
             this.placedStickers = [];
             this.deselectAll();
             this.renderAll();
-            this.updateProgress();
+            this.updateChecklistProgress();
           }
         });
 
+        // 环境白噪音
         document.getElementById('soundToggleBtn').addEventListener('click', () => {
           audio.cycleAmbience();
         });
 
+        // 房间内饰切换弹窗
         const themeBtn = document.getElementById('themePickerBtn');
         const themeModal = document.getElementById('themeModal');
         themeBtn.addEventListener('click', () => {
@@ -1541,7 +1575,12 @@
 
         document.getElementById('nextLevelBtn').addEventListener('click', () => {
           document.getElementById('levelClearModal').classList.add('hidden');
-          this.loadChallenge(this.curLevelIdx + 1);
+          this.curLevelIdx = (this.curLevelIdx + 1) % THEME_BLUEPRINTS.length;
+          const bp = THEME_BLUEPRINTS[this.curLevelIdx];
+          this.applyTheme(bp.theme);
+          this.placedStickers = [];
+          this.renderAll();
+          this.updateChecklistProgress();
         });
         document.getElementById('stayExploreBtn').addEventListener('click', () => {
           document.getElementById('levelClearModal').classList.add('hidden');
@@ -1585,7 +1624,7 @@
 
         tearStrip.addEventListener('click', () => {
           if (this.blindBags <= 0) {
-            alert('盲袋已用尽！请完成关卡挑战或用金币购买盲袋！');
+            alert('盲袋已用尽！请用金币购买新盲袋！');
             return;
           }
 
@@ -1627,7 +1666,7 @@
 
         buyBtn.addEventListener('click', () => {
           if (this.coins < 200) {
-            alert('金币不足！通关关卡挑战可免费赢取大量金币！');
+            alert('金币不足！');
             return;
           }
           this.coins -= 200;
@@ -1639,7 +1678,7 @@
         });
       }
 
-      // 📖 DeepSeek 不限量大模型：AI 治愈手帐日记与文案创作
+      // 📖 DeepSeek 不限量大模型：AI 治愈手帐日记生成
       bindAiDiarySystem() {
         const diaryModal = document.getElementById('aiDiaryModal');
         const openDiaryBtn = document.getElementById('openDiaryBtn');
@@ -1651,7 +1690,7 @@
 
         const generateDiary = async () => {
           audio.playRip();
-          titleEl.innerText = 'DeepSeek 正在细细品味...';
+          titleEl.innerText = 'DeepSeek 正在品读你的小屋...';
           contentEl.innerHTML = `<span class="animate-pulse">正在根据你布置的小屋提笔撰写手帐日记...</span>`;
 
           const itemNames = this.placedStickers.map(s => s.name);
@@ -1815,7 +1854,6 @@
         audio.playRip();
 
         try {
-          // 1. 使用 DeepSeek 不限量模型扩写出完美的 2D 模切平面贴纸 Prompt
           let optimizedPrompt = `Die-cut sticker of ${val}, pure 2D flat front elevation view, straight front facing, cute scrapbooking sticker, thick white sticker border outline, solid pure white background, flat vector illustration`;
           try {
             const dsResp = await fetch(DEEPSEEK_CONFIG.url, {
@@ -1848,7 +1886,6 @@
 
           this.btnText.innerText = 'Grok 绘制 2D 平面贴纸中...';
 
-          // 2. 调用 Grok 绘制高质感贴纸图像
           const resp = await fetch('https://img.pipiwangcom.com/v1/images/generations', {
             method: 'POST',
             headers: {
@@ -1878,8 +1915,8 @@
             cat: 'custom',
             name: val.slice(0, 8),
             img: transparentPng,
-            width: 90,
-            height: 90
+            width: 100,
+            height: 100
           };
 
           ALL_STICKERS.push(customSticker);
