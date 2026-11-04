@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>造景贴纸小憩 · 2D平面手帐拼贴</title>
+  <title>造景贴纸小憩 · 治愈手帐物语</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -19,44 +19,30 @@
       padding: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background-color: #26201b;
+      background-color: #231c18;
     }
-    /* 全屏手帐画板 */
-    #journalViewport {
+    #gameViewport {
       width: 100vw;
       height: 100vh;
       overflow: hidden;
       position: relative;
       touch-action: none;
     }
-    /* 手帐纸张纹理与点阵网格 (纯2D平面底纸) */
-    .journal-paper-cream {
-      background-color: #faf5ec;
+    /* 纯 2D 平面手帐底纸 */
+    .paper-grid {
+      background-color: #faf5eb;
       background-image: 
-        linear-gradient(rgba(180, 160, 140, 0.12) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(180, 160, 140, 0.12) 1px, transparent 1px);
+        linear-gradient(rgba(180, 155, 130, 0.13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(180, 155, 130, 0.13) 1px, transparent 1px);
       background-size: 20px 20px;
     }
-    .journal-paper-kraft {
-      background-color: #eee1cc;
-      background-image: radial-gradient(rgba(120, 95, 70, 0.14) 1px, transparent 1px);
-      background-size: 16px 16px;
-    }
-    .journal-paper-white {
-      background-color: #fbfbfb;
-      background-image: 
-        linear-gradient(rgba(200, 200, 200, 0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(200, 200, 200, 0.15) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-
-    /* 水平平直地板胶带 (划分天地两分法) */
-    .floor-wood-strip {
+    /* 水平平直地板胶带 (地平线) */
+    .floor-wood {
       background: linear-gradient(180deg, #9b6c42 0%, #b88657 8%, #8d5e35 100%);
-      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.12);
       border-top: 3px solid #633f20;
     }
-    .floor-tile-strip {
+    .floor-tile {
       background-color: #eae5dc;
       background-image: 
         linear-gradient(45deg, #38332e 25%, transparent 25%), 
@@ -66,43 +52,79 @@
       background-size: 32px 32px;
       background-position: 0 0, 0 16px, 16px -16px, -16px 0px;
       border-top: 3px solid #231f1c;
-      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
     }
-    .floor-grass-strip {
-      background: linear-gradient(180deg, #5b8c5a 0%, #4a7549 100%);
-      border-top: 3px solid #365935;
-      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
+    /* 关卡模式剪影轮廓线 */
+    .silhouette-target {
+      position: absolute;
+      border: 2px dashed rgba(231, 111, 81, 0.45);
+      background: rgba(231, 111, 81, 0.05);
+      border-radius: 12px;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .silhouette-target.is-filled {
+      border: 2px solid transparent;
+      background: transparent;
     }
 
-    /* 纯 2D 平面贴纸物理浮起与模切白边 */
-    .flat-sticker-node {
+    /* 贴纸节点 */
+    .sticker-node {
       position: absolute;
       touch-action: none;
       transform-origin: center center;
       transition: filter 0.15s cubic-bezier(0.2, 0.9, 0.3, 1);
       cursor: grab;
-      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.16));
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.18));
     }
-    .flat-sticker-node:active, .flat-sticker-node.is-dragging {
+    .sticker-node:active, .sticker-node.is-dragging {
       cursor: grabbing;
-      filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.32)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18)) !important;
+      filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.35)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2)) !important;
       z-index: 9999 !important;
     }
-    .flat-sticker-node img {
+    .sticker-node img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       pointer-events: none;
     }
 
-    /* 贴纸卡片质感 */
-    .sticker-tray-card {
-      background: #ffffff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(0,0,0,0.04);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* 动态交互：唱片旋转 */
+    @keyframes spin-record {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
-    .sticker-tray-card:active {
-      transform: scale(0.92);
+    .spinning-record {
+      animation: spin-record 2.4s linear infinite;
+    }
+
+    /* 动态交互：热气袅袅 */
+    @keyframes steam-rise {
+      0% { transform: translateY(0) scaleX(1); opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-24px) scaleX(1.4); opacity: 0; }
+    }
+    .steam-anim {
+      animation: steam-rise 2s ease-out infinite;
+    }
+
+    /* 动态交互：猫咪呼吸弹跳 */
+    @keyframes cat-purr {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04, 0.96); }
+    }
+    .cat-purring {
+      animation: cat-purr 1.8s ease-in-out infinite;
+    }
+
+    /* 盲袋金光流光 */
+    @keyframes foil-shine {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .foil-shiny {
+      background: linear-gradient(115deg, #f39c12 0%, #f1c40f 25%, #ffffff 50%, #f1c40f 75%, #e67e22 100%);
+      background-size: 200% 100%;
+      animation: foil-shine 3s infinite linear;
     }
 
     /* 选框控制点 */
@@ -121,10 +143,6 @@
       transform: scale(1.25);
     }
 
-    /* 隐藏滚动条 */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
     /* 抽屉式收纳动画 */
     #stickerDrawer {
       transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
@@ -132,105 +150,128 @@
     #stickerDrawer.is-collapsed {
       transform: translateY(calc(100% - 46px));
     }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
 
-  <!-- 全屏手帐画板视口 (纯 2D 平面，天地两分横平竖直) -->
-  <div id="journalViewport" class="journal-paper-cream">
+  <!-- 全屏手帐物语视口 -->
+  <div id="gameViewport" class="paper-grid">
     
-    <!-- 房间舞台容器 -->
-    <div id="journalCanvas" class="absolute inset-0 w-full h-full select-none">
+    <!-- 房间舞台 -->
+    <div id="journalStage" class="absolute inset-0 w-full h-full select-none">
       
-      <!-- 底部平直地面胶带 (水平地平线，家具脚部直接踩在此处) -->
-      <div id="floorStrip" class="floor-wood-strip absolute bottom-0 left-0 right-0 h-[22%] pointer-events-none transition-all duration-300">
-        <!-- 踢脚线微阴影 -->
+      <!-- 平直地面胶带 -->
+      <div id="floorStrip" class="floor-wood absolute bottom-0 left-0 right-0 h-[22%] pointer-events-none transition-all duration-300">
         <div class="w-full h-1.5 bg-black/15"></div>
+      </div>
+
+      <!-- 关卡剪影目标层 (关卡模式专属) -->
+      <div id="silhouetteLayer" class="absolute inset-0 pointer-events-none z-10">
+        <!-- 动态生成关卡镂空剪影 -->
+      </div>
+
+      <!-- 台灯柔光遮罩 (交互开关灯) -->
+      <div id="lampLightMask" class="absolute inset-0 bg-amber-500/10 backdrop-brightness-110 pointer-events-none hidden transition-opacity duration-500 z-15">
+        <div class="absolute inset-0 bg-radial from-amber-200/25 to-transparent"></div>
       </div>
 
       <!-- 贴纸物理摆放容器 -->
       <div id="stickerContainer" class="absolute inset-0 overflow-hidden z-20">
-        <!-- 纯平面贴纸动态渲染在此 -->
+        <!-- 贴纸实例 -->
       </div>
 
-      <!-- 选中贴纸外框手柄 -->
+      <!-- 选中外框手柄 -->
       <div id="selectionOverlay" class="absolute inset-0 pointer-events-none hidden z-40">
         <div id="selectionBox" class="selection-box absolute rounded-2xl">
-          <!-- 🪞 水平镜像翻转 -->
-          <button id="pinFlip" class="handle-pin absolute -top-4 -left-4 w-8 h-8 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-sm font-bold border border-[#d8c8b5]" title="水平镜像翻转">
+          <button id="pinFlip" class="handle-pin absolute -top-4 -left-4 w-8 h-8 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-sm font-bold border border-[#d8c8b5]" title="翻转">
             🪞
           </button>
-          <!-- ✕ 撕掉删除 -->
-          <button id="pinDelete" class="handle-pin absolute -top-4 -right-4 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold border border-white/80" title="撕掉丢弃">
+          <button id="pinDelete" class="handle-pin absolute -top-4 -right-4 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold border border-white/80" title="撕掉">
             ✕
           </button>
-          <!-- ⬆️ 图层层级循环 -->
-          <button id="pinLayer" class="handle-pin absolute -bottom-4 -left-4 w-8 h-8 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-sm font-bold border border-[#d8c8b5]" title="置顶或下移">
+          <button id="pinLayer" class="handle-pin absolute -bottom-4 -left-4 w-8 h-8 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-sm font-bold border border-[#d8c8b5]" title="层级">
             ⬆️
           </button>
-          <!-- 🔄 复合旋转与缩放手柄 -->
-          <div id="pinTransform" class="handle-pin absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-[#e76f51] text-white flex items-center justify-center text-sm font-bold border-2 border-white cursor-nwse-resize shadow-xl" title="按住拖拽自由旋转和缩放">
+          <div id="pinTransform" class="handle-pin absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-[#e76f51] text-white flex items-center justify-center text-sm font-bold border-2 border-white cursor-nwse-resize shadow-xl" title="旋转与缩放">
             🔄
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 顶层极简浮动 HUD (手帐工具条) -->
-    <header class="absolute top-3 left-3 right-3 flex items-center justify-between z-30 pointer-events-none">
+    <!-- 顶层游戏化状态 HUD (金币、盲袋、模式切换、音效) -->
+    <header class="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-30 pointer-events-none">
       
-      <!-- 地板材质胶带切换 -->
-      <div class="pointer-events-auto bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#decbb8] flex items-center gap-1.5 shadow-md">
-        <span class="text-xs text-[#7d6752] font-semibold">🪵 地面:</span>
-        <select id="floorSelect" class="bg-transparent text-xs text-[#4a3a2a] font-bold outline-none cursor-pointer">
-          <option value="wood" selected>实木地板条</option>
-          <option value="tile">复古棋盘格</option>
-          <option value="grass">春日绿草坪</option>
-          <option value="none">纯纸面留白</option>
-        </select>
+      <!-- 左侧：金币与拆盲袋奖励 -->
+      <div class="pointer-events-auto flex items-center gap-1.5">
+        <!-- 金币徽章 -->
+        <div class="bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#dfcca8] shadow-md flex items-center gap-1 text-xs font-bold text-[#b45309]">
+          <span>🪙</span><span id="coinCount">120</span>
+        </div>
+        <!-- 拆盲袋入口 (带呼吸小红点) -->
+        <button id="openBlindBagBtn" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full shadow-md text-xs font-bold active:scale-95 transition-all flex items-center gap-1 relative">
+          <span>🎁</span><span>拆盲袋</span>
+          <span id="bagBadge" class="w-2 h-2 rounded-full bg-red-400 absolute -top-0.5 -right-0.5 animate-ping"></span>
+        </button>
       </div>
 
-      <!-- 右侧控制胶囊 -->
-      <div class="pointer-events-auto flex items-center gap-1.5 bg-white/90 backdrop-blur-md p-1 rounded-full border border-[#decbb8] shadow-md">
-        <!-- 白噪音氛围 -->
-        <button id="ambientBtn" class="px-2.5 py-1 rounded-full text-xs text-[#5a4837] font-semibold hover:bg-stone-100 active:scale-95 transition-all flex items-center gap-1" title="切换背景白噪音">
+      <!-- 右侧：模式切换与工具 -->
+      <div class="pointer-events-auto flex items-center gap-1.5 bg-white/95 backdrop-blur-md p-1 rounded-full border border-[#dfcca8] shadow-md">
+        <!-- 模式切换：🧩 关卡复原 vs 🎨 自由造景 -->
+        <button id="modeToggleBtn" class="px-2.5 py-1 rounded-full text-xs font-bold bg-[#e76f51] text-white shadow-xs active:scale-95 transition-all flex items-center gap-1">
+          <span id="modeIcon">🧩</span><span id="modeText">关卡挑战</span>
+        </button>
+
+        <!-- 氛围音效 -->
+        <button id="ambientBtn" class="p-1.5 rounded-full text-xs text-[#5c4735] hover:bg-stone-100 active:scale-95" title="环境白噪音">
           <span id="ambientIcon">🌧️</span>
-          <span id="ambientLabel" class="text-[11px] hidden sm:inline">雨声</span>
         </button>
 
-        <!-- 🔮 AI定制 2D 平面贴纸 -->
-        <button id="openAiBtn" class="px-2.5 py-1 rounded-full text-xs bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1" title="Grok AI 实时画 2D 平面贴纸">
-          <span>🔮</span><span class="text-[11px]">AI定制</span>
+        <!-- 🔮 AI定制 -->
+        <button id="openAiBtn" class="p-1.5 rounded-full text-xs text-orange-600 hover:bg-orange-50 active:scale-95 font-bold" title="Grok AI 定制贴纸">
+          🔮
         </button>
 
-        <!-- 清空重置 -->
-        <button id="clearBtn" class="p-1.5 rounded-full text-xs text-red-500 hover:bg-red-50 active:scale-95 transition-all" title="清空画板，从一张白纸重新开始">
+        <!-- 清空 -->
+        <button id="clearBtn" class="p-1.5 rounded-full text-xs text-red-500 hover:bg-red-50 active:scale-95" title="清空画板">
           🗑️
         </button>
 
-        <!-- 保存手帐相片 -->
-        <button id="exportBtn" class="px-3 py-1 rounded-full text-xs bg-[#e76f51] text-white font-bold shadow-md hover:bg-[#d95d3f] active:scale-95 transition-all flex items-center gap-1">
-          <span>📸</span><span>保存</span>
+        <!-- 保存 -->
+        <button id="exportBtn" class="px-2.5 py-1 rounded-full text-xs bg-emerald-600 text-white font-bold shadow-xs active:scale-95">
+          📸
         </button>
       </div>
     </header>
 
-    <!-- 0 贴纸空白手帐开局提示 -->
-    <div id="blankStartHint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-6 z-20 transition-opacity duration-300">
-      <div class="bg-white/95 backdrop-blur-md border-2 border-[#d9ccba] text-[#4a3b2b] px-6 py-4 rounded-3xl shadow-xl flex flex-col items-center gap-1.5 max-w-xs">
-        <span class="text-3xl animate-bounce">📔</span>
-        <h2 class="text-sm font-bold tracking-tight">纯 2D 平面手帐造景</h2>
-        <p class="text-[11px] text-[#786450] leading-relaxed">
-          面对完全平整的手帐纸张，先在墙上贴一扇窗，再在平直地板上摆放桌椅与猫咪，享受纯正手帐拼贴！
-        </p>
-        <span class="text-[10px] text-orange-600 font-semibold mt-1">👇 点击下方抽屉挑选第一张贴纸</span>
+    <!-- 关卡任务目标进度条 (关卡模式可见) -->
+    <div id="levelProgressBanner" class="absolute top-12 left-4 right-4 z-25 pointer-events-none transition-all duration-300">
+      <div class="bg-white/90 backdrop-blur-md border border-[#decbb8] shadow-lg rounded-2xl p-2.5 flex items-center justify-between gap-3 pointer-events-auto">
+        <div class="flex items-center gap-2">
+          <span class="text-xl" id="levelIcon">☕</span>
+          <div>
+            <div class="text-xs font-bold text-[#4a3726] flex items-center gap-1.5">
+              <span id="levelTitle">第 1 关 · 街角日落咖啡馆</span>
+              <span id="levelStar" class="text-[10px] text-amber-500 font-extrabold">★ 300金币</span>
+            </div>
+            <p class="text-[10px] text-[#8a7563]" id="levelHint">将下方发光贴纸拖入对应虚线轮廓中</p>
+          </div>
+        </div>
+        <!-- 进度环 -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <div class="w-16 h-2 bg-stone-200 rounded-full overflow-hidden">
+            <div id="levelProgressBar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <span id="levelProgressText" class="text-xs font-bold text-[#e76f51]">0%</span>
+        </div>
       </div>
     </div>
 
-    <!-- 底部抽屉式离型贴纸册 (纯平面正视分类) -->
+    <!-- 底部抽屉式离型贴纸册 -->
     <footer id="stickerDrawer" class="absolute bottom-0 left-0 right-0 z-30 flex flex-col bg-[#f5ede1] border-t-2 border-[#d9ccba] shadow-[0_-6px_25px_rgba(0,0,0,0.15)] rounded-t-3xl overflow-hidden max-h-[340px]">
       
-      <!-- 抽屉顶部把手与分类标签栏 -->
       <div id="drawerHeader" class="px-3 pt-2 pb-1.5 flex flex-col gap-1 border-b border-[#dfd0bd] bg-[#ede1cf] cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-[#baa691] mx-auto opacity-75"></div>
 
@@ -251,8 +292,8 @@
             <button data-cat="props" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
               ☕ ⑤桌面微缩
             </button>
-            <button data-cat="custom" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              ✨ ⑥我的定制
+            <button data-cat="collection" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
+              🎁 ⑥盲袋收藏
             </button>
           </div>
           <button id="toggleDrawerBtn" class="shrink-0 p-1 text-xs text-[#8c7866] font-bold">
@@ -261,20 +302,93 @@
         </div>
       </div>
 
-      <!-- 纯平面贴纸册卡片展示网格 -->
       <div id="stickersGrid" class="p-3 grid grid-cols-4 sm:grid-cols-6 gap-2.5 overflow-y-auto max-h-[220px] no-scrollbar bg-[#f8f2e9]">
-        <!-- 动态渲染贴纸卡片 -->
+        <!-- 贴纸卡片 -->
       </div>
     </footer>
 
   </div>
 
-  <!-- 🔮 Grok AI 贴纸工坊模态框 (强制纯 2D 平面正视模式) -->
-  <div id="aiModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col gap-3.5 border border-[#e5d8c7] shadow-2xl relative">
-      <button id="closeAiBtn" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">
+  <!-- 🎁 沉浸式撕盲袋弹窗 (手势划拉撕拉包装条 + 抽中闪卡) -->
+  <div id="blindBagModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-6 max-w-sm w-full flex flex-col items-center gap-4 border border-[#e5d8c7] shadow-2xl relative">
+      <button id="closeBlindBagBtn" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">
         ✕
       </button>
+
+      <div class="text-center">
+        <h3 class="font-extrabold text-lg text-[#4a3b2b] flex items-center justify-center gap-1.5">
+          <span>✨</span><span>手帐限定盲袋</span><span>✨</span>
+        </h3>
+        <p class="text-xs text-[#8c7764] mt-1">划动中间虚线撕开包装，必得 2 张稀有正视贴纸！</p>
+      </div>
+
+      <!-- 盲袋包装体 (金箔流光) -->
+      <div id="foilBag" class="w-60 h-72 rounded-2xl foil-shiny shadow-2xl p-4 flex flex-col items-center justify-between border-4 border-amber-300 relative overflow-hidden transition-transform duration-500">
+        <!-- 包装顶部锯齿 -->
+        <div class="text-xs font-black tracking-widest text-[#78350f] uppercase">LIMITED EDITION</div>
+        
+        <div class="text-center my-auto">
+          <div class="text-4xl animate-bounce">🎁</div>
+          <div class="font-extrabold text-sm text-[#78350f] mt-2">神秘生活微缩袋</div>
+        </div>
+
+        <!-- 拟真撕拉虚线槽 -->
+        <div id="tearStrip" class="w-full py-2 bg-black/25 backdrop-blur-xs rounded-xl flex items-center justify-between px-3 cursor-pointer border border-dashed border-white/60 active:scale-95 transition-all">
+          <span class="text-xs text-white font-bold tracking-wider">👉 滑动/点击撕开</span>
+          <span class="text-sm">✂️</span>
+        </div>
+      </div>
+
+      <!-- 抽中贴纸展示区 (撕开后淡入) -->
+      <div id="unboxedResult" class="hidden flex flex-col items-center gap-3 w-full animate-fade-in">
+        <div class="text-sm font-bold text-amber-600">🎉 恭喜获得稀有限定贴纸！</div>
+        <div id="unboxedCards" class="flex items-center justify-center gap-3">
+          <!-- 动态展示揭出的 2 张贴纸 -->
+        </div>
+        <button id="takeStickersBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-xs shadow-md active:scale-95">
+          收入我的贴纸册！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎉 通关烟花庆典模态框 -->
+  <div id="levelClearModal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-6 max-w-sm w-full flex flex-col items-center gap-4 border-2 border-amber-400 shadow-2xl text-center animate-bounce-short">
+      <div class="text-5xl">🏆</div>
+      <div>
+        <h3 class="font-extrabold text-lg text-[#4a3b2b]">完美复原！关卡通过！</h3>
+        <p class="text-xs text-[#8c7764] mt-1">你的审美太棒了！整座小房间已被赋予生机！</p>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3 w-full flex items-center justify-around">
+        <div>
+          <div class="text-xs text-[#8a725e]">通关奖励</div>
+          <div class="text-base font-extrabold text-amber-600">+300 🪙</div>
+        </div>
+        <div class="w-[1px] h-8 bg-amber-200"></div>
+        <div>
+          <div class="text-xs text-[#8a725e]">解锁惊喜</div>
+          <div class="text-base font-extrabold text-orange-600">+1 盲袋 🎁</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 w-full">
+        <button id="nextLevelBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold shadow-md active:scale-95">
+          挑战下一关 🚀
+        </button>
+        <button id="stayExploreBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-[#6d5b4a] text-xs font-bold active:scale-95">
+          在房间玩耍 🐾
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔮 Grok AI 贴纸工坊 -->
+  <div id="aiModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col gap-3.5 border border-[#e5d8c7] shadow-2xl relative">
+      <button id="closeAiBtn" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">✕</button>
       <div>
         <div class="flex items-center gap-1.5">
           <span class="text-xl">🔮</span>
@@ -282,15 +396,6 @@
         </div>
         <p class="text-xs text-[#826f5d] mt-1">自动绘制横平竖直的正视立面贴纸，与手帐完美贴合！</p>
       </div>
-
-      <!-- 灵感 Chips -->
-      <div class="flex flex-wrap gap-1.5">
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🪟 法式落地双开拱门窗</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🍰 草莓千层切件蛋糕</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🛋️ 复古墨绿色丝绒双人沙发</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🐈 趴在桌面打盹的银渐层猫咪</span>
-      </div>
-
       <div class="flex flex-col gap-2">
         <input id="aiInput" type="text" placeholder="输入想要的贴纸，如：日系木制双层餐边柜..." class="w-full px-3.5 py-2.5 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
         <button id="doGenerateBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#e76f51] to-[#f4a261] text-white text-xs font-bold shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5">
@@ -298,38 +403,32 @@
           <span id="aiBtnText">✨ 绘制纯 2D 平面贴纸</span>
         </button>
       </div>
-      <div id="aiStatus" class="text-[11px] text-center text-[#8d7966] hidden">
-        Grok 正在以 2D 平面正视角绘制与透明抠图，约 10 秒...
-      </div>
+      <div id="aiStatus" class="text-[11px] text-center text-[#8d7966] hidden">Grok 正在绘制中并进行透明白边处理，约 10 秒...</div>
     </div>
   </div>
 
-  <!-- 📸 导出高清手帐海报模态框 -->
+  <!-- 📸 导出相片弹窗 -->
   <div id="exportModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col items-center gap-4 border border-[#e5d8c7] shadow-2xl">
       <div class="text-center">
         <h3 class="font-bold text-base text-[#4a3b2b]">🎉 你的手帐造景已完成！</h3>
-        <p class="text-xs text-[#826f5d] mt-1">纯 2D 平面手作微缩空间，长按保存相片</p>
+        <p class="text-xs text-[#826f5d] mt-1">长按图片直接保存高清手帐照片</p>
       </div>
       <div class="w-full rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-stone-900">
         <img id="exportPreview" src="" alt="Journal Export" class="w-full h-auto block">
       </div>
       <div class="flex items-center gap-2 w-full">
-        <button id="closeExportBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-xs font-semibold text-[#6f5e4d] active:scale-95">
-          返回继续拼贴
-        </button>
-        <a id="downloadBtn" download="my_flat_journal_diorama.png" class="flex-1 py-2.5 text-center rounded-xl bg-[#e76f51] text-white text-xs font-bold shadow-md active:scale-95">
-          📥 下载到手机
-        </a>
+        <button id="closeExportBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-xs font-semibold text-[#6f5e4d] active:scale-95">返回手帐</button>
+        <a id="downloadBtn" download="my_flat_journal.png" class="flex-1 py-2.5 text-center rounded-xl bg-[#e76f51] text-white text-xs font-bold shadow-md active:scale-95">📥 下载相片</a>
       </div>
     </div>
   </div>
 
   <script>
     /* ==========================================================================
-       1. 手帐专用 ASMR 撕贴音效与白噪音
+       1. 音频与交互音效合成器 (含开盲袋、通关号角、猫叫与台灯声)
        ========================================================================== */
-    class JournalAudioEngine {
+    class SoundEngine {
       constructor() {
         this.ctx = null;
         this.ambience = 'rain';
@@ -351,33 +450,14 @@
         this.setAmbience(next);
       }
       setAmbience(mode) {
-        this.stopAmbience();
+        this.nodes.forEach(n => { try { n.stop ? n.stop() : n.disconnect(); } catch (e) {} });
+        this.nodes = [];
         this.ambience = mode;
         const icon = document.getElementById('ambientIcon');
-        const label = document.getElementById('ambientLabel');
-
-        if (mode === 'rain') {
-          icon.innerText = '🌧️';
-          label.innerText = '雨声';
-          this.playRain();
-        } else if (mode === 'fire') {
-          icon.innerText = '🪵';
-          label.innerText = '壁炉';
-          this.playFire();
-        } else if (mode === 'lofi') {
-          icon.innerText = '🎵';
-          label.innerText = 'Lofi';
-          this.playLofi();
-        } else {
-          icon.innerText = '🔇';
-          label.innerText = '静音';
-        }
-      }
-      stopAmbience() {
-        this.nodes.forEach(n => {
-          try { n.stop ? n.stop() : n.disconnect(); } catch (e) {}
-        });
-        this.nodes = [];
+        if (mode === 'rain') { icon.innerText = '🌧️'; this.playRain(); }
+        else if (mode === 'fire') { icon.innerText = '🪵'; this.playFire(); }
+        else if (mode === 'lofi') { icon.innerText = '🎵'; this.playLofi(); }
+        else { icon.innerText = '🔇'; }
       }
       playRain() {
         if (!this.ctx) return;
@@ -387,18 +467,12 @@
           const d = b.getChannelData(0);
           for (let i = 0; i < sz; i++) d[i] = Math.random() * 2 - 1;
           const src = this.ctx.createBufferSource();
-          src.buffer = b;
-          src.loop = true;
+          src.buffer = b; src.loop = true;
           const f = this.ctx.createBiquadFilter();
-          f.type = 'lowpass';
-          f.frequency.value = 850;
-          const g = this.ctx.createGain();
-          g.gain.value = 0.08;
-          src.connect(f);
-          f.connect(g);
-          g.connect(this.ctx.destination);
-          src.start();
-          this.nodes.push(src, f, g);
+          f.type = 'lowpass'; f.frequency.value = 850;
+          const g = this.ctx.createGain(); g.gain.value = 0.08;
+          src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+          src.start(); this.nodes.push(src, f, g);
         } catch (e) {}
       }
       playFire() {
@@ -409,33 +483,20 @@
           const d = b.getChannelData(0);
           for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
           const src = this.ctx.createBufferSource();
-          src.buffer = b;
-          src.loop = true;
+          src.buffer = b; src.loop = true;
           const f = this.ctx.createBiquadFilter();
-          f.type = 'lowpass';
-          f.frequency.value = 350;
-          const g = this.ctx.createGain();
-          g.gain.value = 0.12;
-          src.connect(f);
-          f.connect(g);
-          g.connect(this.ctx.destination);
-          src.start();
-          this.nodes.push(src, f, g);
+          f.type = 'lowpass'; f.frequency.value = 350;
+          const g = this.ctx.createGain(); g.gain.value = 0.12;
+          src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+          src.start(); this.nodes.push(src, f, g);
         } catch (e) {}
       }
       playLofi() {
         if (!this.ctx) return;
-        const chords = [
-          [261.63, 329.63, 392.00, 493.88],
-          [220.00, 261.63, 329.63, 392.00],
-          [174.61, 220.00, 261.63, 329.63]
-        ];
+        const chords = [[261.63, 329.63, 392.00], [220.00, 261.63, 329.63], [174.61, 220.00, 261.63]];
         let idx = 0;
         const timer = setInterval(() => {
-          if (this.ambience !== 'lofi' || !this.ctx) {
-            clearInterval(timer);
-            return;
-          }
+          if (this.ambience !== 'lofi' || !this.ctx) { clearInterval(timer); return; }
           const chord = chords[idx];
           idx = (idx + 1) % chords.length;
           chord.forEach((freq, i) => {
@@ -448,41 +509,37 @@
                 osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
                 gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.0005, this.ctx.currentTime + 1.6);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 1.6);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); osc.stop(this.ctx.currentTime + 1.6);
               } catch (e) {}
             }, i * 120);
           });
         }, 3200);
       }
-      // 撕贴纸声
-      playPeel() {
+      // 撕开贴纸 / 撕开盲袋包装
+      playRip() {
         this.init();
         if (!this.ctx) return;
         try {
-          const sz = this.ctx.sampleRate * 0.12;
+          const sz = this.ctx.sampleRate * 0.2;
           const b = this.ctx.createBuffer(1, sz, this.ctx.sampleRate);
           const d = b.getChannelData(0);
-          for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sz * 0.35));
+          for (let i = 0; i < sz; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sz * 0.5));
           const src = this.ctx.createBufferSource();
           src.buffer = b;
           const f = this.ctx.createBiquadFilter();
           f.type = 'bandpass';
-          f.frequency.setValueAtTime(1600, this.ctx.currentTime);
-          f.frequency.exponentialRampToValueAtTime(3600, this.ctx.currentTime + 0.1);
+          f.frequency.setValueAtTime(2200, this.ctx.currentTime);
+          f.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.18);
           const g = this.ctx.createGain();
-          g.gain.setValueAtTime(0.32, this.ctx.currentTime);
-          g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-          src.connect(f);
-          f.connect(g);
-          g.connect(this.ctx.destination);
+          g.gain.setValueAtTime(0.4, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+          src.connect(f); f.connect(g); g.connect(this.ctx.destination);
           src.start();
-          if (navigator.vibrate) navigator.vibrate(10);
+          if (navigator.vibrate) navigator.vibrate([20, 30, 15]);
         } catch (e) {}
       }
-      // 贴平纸张 Pop 声
+      // 贴上吸附 Pop
       playStick() {
         this.init();
         if (!this.ctx) return;
@@ -490,17 +547,57 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(420, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
+          osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
           gain.gain.setValueAtTime(0.45, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.09);
-          if (navigator.vibrate) navigator.vibrate([12, 20, 8]);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.09);
+          if (navigator.vibrate) navigator.vibrate(10);
         } catch (e) {}
       }
+      // 通关号角大三和弦
+      playFanfare() {
+        this.init();
+        if (!this.ctx) return;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G High C
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            try {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+              gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+              osc.connect(gain); gain.connect(this.ctx.destination);
+              osc.start(); osc.stop(this.ctx.currentTime + 0.4);
+            } catch (e) {}
+          }, idx * 100);
+        });
+        if (navigator.vibrate) navigator.vibrate([30, 40, 30, 40, 60]);
+      }
+      // 猫咪叫声 (合成共振峰)
+      playMeow() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(580, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(920, this.ctx.currentTime + 0.15);
+          osc.frequency.exponentialRampToValueAtTime(640, this.ctx.currentTime + 0.35);
+
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.35);
+          if (navigator.vibrate) navigator.vibrate(15);
+        } catch (e) {}
+      }
+      // 台灯开关清脆咔哒
       playClick() {
         this.init();
         if (!this.ctx) return;
@@ -508,129 +605,296 @@
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(950, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(1100, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.025);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.025);
-          if (navigator.vibrate) navigator.vibrate(6);
-        } catch (e) {}
-      }
-      playDelete() {
-        this.init();
-        if (!this.ctx) return;
-        try {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(260, this.ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.16);
-          gain.gain.setValueAtTime(0.28, this.ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.16);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + 0.16);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(); osc.stop(this.ctx.currentTime + 0.025);
         } catch (e) {}
       }
     }
-    const audio = new JournalAudioEngine();
+    const audio = new SoundEngine();
 
     /* ==========================================================================
-       2. 纯 2D 平面贴纸库 (完全正面平视立面，严格依照真实手帐层级)
+       2. 纯 2D 平面贴纸全量图库 (涵盖基础库与盲袋稀有库)
        ========================================================================== */
-    const FLAT_STICKER_LIBRARY = [
-      // 🪟 ① 纯正面平视窗户 (Base Layer: 贴在最底层)
+    const ALL_FLAT_STICKERS = [
+      // 门窗
       { id: 'flat_arch_window', cat: 'windows', baseZ: 5, name: '拱形日落窗景', img: './assets/flat_arch_window.png', width: 140, height: 165 },
       { id: 'flat_square_window', cat: 'windows', baseZ: 5, name: '绿意方格木窗', img: './assets/flat_square_window.png', width: 135, height: 135 },
 
-      // 🛋️ ② 纯正面正视家具 (Mid Layer: 站在平直地面上)
+      // 家具
       { id: 'flat_desk', cat: 'furniture', baseZ: 25, name: '平直原木书桌', img: './assets/flat_desk.png', width: 145, height: 110 },
       { id: 'flat_sofa', cat: 'furniture', baseZ: 22, name: '复古暖黄皮沙发', img: './assets/flat_sofa.png', width: 135, height: 115 },
       { id: 'flat_bookshelf', cat: 'furniture', baseZ: 20, name: '多层立式大书架', img: './assets/flat_bookshelf.png', width: 110, height: 155 },
       { id: 'flat_bed', cat: 'furniture', baseZ: 18, name: '舒适棉麻双人床', img: './assets/flat_bed.png', width: 155, height: 120 },
       { id: 'flat_piano', cat: 'furniture', baseZ: 24, name: '复古立式小钢琴', img: './assets/flat_piano.png', width: 130, height: 125 },
 
-      // 🌿 ③ 垂挂植物与盆栽
+      // 绿植
       { id: 'flat_hanging_vines', cat: 'plants', baseZ: 85, name: '天花板垂挂绿萝', img: './assets/flat_hanging_vines.png', width: 160, height: 95 },
       { id: 'flat_monstera', cat: 'plants', baseZ: 30, name: '陶土盆龟背竹', img: './assets/flat_monstera.png', width: 95, height: 125 },
       { id: 'flat_tulips', cat: 'plants', baseZ: 55, name: '玻璃瓶粉红郁金香', img: './assets/flat_tulips.png', width: 80, height: 105 },
 
-      // 🐱 ④ 纯平面治愈萌宠 (底部平整，可贴在地面或桌面上)
-      { id: 'flat_cat_orange', cat: 'pets', baseZ: 60, name: '熟睡卷卷橘猫', img: './assets/flat_cat_orange.png', width: 95, height: 75 },
-      { id: 'flat_shiba', cat: 'pets', baseZ: 60, name: '趴窝小柴犬', img: './assets/flat_shiba.png', width: 95, height: 75 },
+      // 萌宠
+      { id: 'flat_cat_orange', cat: 'pets', baseZ: 60, name: '熟睡卷卷橘猫', img: './assets/flat_cat_orange.png', width: 95, height: 75, isInteractive: true },
+      { id: 'flat_shiba', cat: 'pets', baseZ: 60, name: '趴窝小柴犬', img: './assets/flat_shiba.png', width: 95, height: 75, isInteractive: true },
 
-      // ☕ ⑤ 桌面微缩零碎物件 (Top Layer: 摆放在平直桌面上)
-      { id: 'flat_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/flat_lamp.png', width: 85, height: 110 },
-      { id: 'flat_breakfast', cat: 'props', baseZ: 65, name: '热拿铁与吐司托盘', img: './assets/flat_breakfast.png', width: 90, height: 75 },
-      { id: 'flat_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/flat_record_player.png', width: 95, height: 85 },
+      // 微缩摆件 (含可交互道具)
+      { id: 'flat_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/flat_lamp.png', width: 85, height: 110, isInteractive: true },
+      { id: 'flat_breakfast', cat: 'props', baseZ: 65, name: '热拿铁与吐司托盘', img: './assets/flat_breakfast.png', width: 90, height: 75, isInteractive: true },
+      { id: 'flat_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/flat_record_player.png', width: 95, height: 85, isInteractive: true },
       { id: 'flat_books_stack', cat: 'props', baseZ: 65, name: '叠放精装书与眼镜', img: './assets/flat_books_stack.png', width: 85, height: 80 }
     ];
 
-    let customFlatStickers = JSON.parse(localStorage.getItem('my_flat_custom_stickers') || '[]');
+    // 盲袋稀有库 (开盲袋独家解锁)
+    const RARE_BLIND_STICKERS = [
+      { id: 'rare_corgi', cat: 'collection', baseZ: 62, name: '✨ 摇尾短腿柯基', img: './assets/stk_corgi.png', width: 95, height: 80 },
+      { id: 'rare_croissant', cat: 'collection', baseZ: 65, name: '✨ 金黄草莓可颂', img: './assets/stk_croissant.png', width: 85, height: 75 },
+      { id: 'rare_fireflies', cat: 'collection', baseZ: 70, name: '✨ 微光流萤魔瓶', img: './assets/stk_fireflies.png', width: 80, height: 95 },
+      { id: 'rare_tea_set', cat: 'collection', baseZ: 65, name: '✨ 维多利亚花茶具', img: './assets/stk_tea_set.png', width: 85, height: 75 },
+      { id: 'rare_pouf', cat: 'collection', baseZ: 28, name: '✨ 羊羔绒软榻垫', img: './assets/stk_pouf.png', width: 90, height: 80 }
+    ];
 
     /* ==========================================================================
-       3. 核心手帐造景逻辑 (1:1 平面自由排版，无斜角崩坏)
+       3. 3 大沉浸关卡挑战配置 (Unpacking 治愈复原流)
        ========================================================================== */
-    class FlatDioramaApp {
+    const CHAPTER_LEVELS = [
+      {
+        id: 1,
+        title: '第 1 关 · 街角日落咖啡馆',
+        icon: '☕',
+        rewardCoins: 300,
+        targets: [
+          { tplId: 'flat_arch_window', xRatio: 0.5, yRatio: 0.18 },
+          { tplId: 'flat_desk', xRatio: 0.5, yRatio: 0.52 },
+          { tplId: 'flat_sofa', xRatio: 0.12, yRatio: 0.54 },
+          { tplId: 'flat_breakfast', xRatio: 0.54, yRatio: 0.44 },
+          { tplId: 'flat_lamp', xRatio: 0.38, yRatio: 0.40 },
+          { tplId: 'flat_cat_orange', xRatio: 0.22, yRatio: 0.68 }
+        ]
+      },
+      {
+        id: 2,
+        title: '第 2 关 · 暖阳橘猫书房',
+        icon: '📚',
+        rewardCoins: 400,
+        targets: [
+          { tplId: 'flat_square_window', xRatio: 0.22, yRatio: 0.20 },
+          { tplId: 'flat_bookshelf', xRatio: 0.72, yRatio: 0.38 },
+          { tplId: 'flat_bed', xRatio: 0.35, yRatio: 0.55 },
+          { tplId: 'flat_hanging_vines', xRatio: 0.5, yRatio: 0.05 },
+          { tplId: 'flat_shiba', xRatio: 0.40, yRatio: 0.70 },
+          { tplId: 'flat_books_stack', xRatio: 0.72, yRatio: 0.60 }
+        ]
+      },
+      {
+        id: 3,
+        title: '第 3 关 · 惬意音乐沙龙',
+        icon: '🎹',
+        rewardCoins: 500,
+        targets: [
+          { tplId: 'flat_arch_window', xRatio: 0.28, yRatio: 0.18 },
+          { tplId: 'flat_piano', xRatio: 0.68, yRatio: 0.50 },
+          { tplId: 'flat_monstera', xRatio: 0.08, yRatio: 0.55 },
+          { tplId: 'flat_record_player', xRatio: 0.68, yRatio: 0.40 },
+          { tplId: 'flat_tulips', xRatio: 0.45, yRatio: 0.62 },
+          { tplId: 'flat_cat_orange', xRatio: 0.72, yRatio: 0.70 }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       4. 游戏主状态机 (金币、关卡进度、盲袋背包、全屏触控)
+       ========================================================================== */
+    class CozyJournalGame {
       constructor() {
-        this.placedStickers = []; // 初始空旷，完全由玩家亲手打造！
+        // 数据持久化
+        this.coins = parseInt(localStorage.getItem('cozy_coins') || '150');
+        this.blindBags = parseInt(localStorage.getItem('cozy_bags') || '1');
+        this.unlockedRares = JSON.parse(localStorage.getItem('cozy_unlocked_rares') || '[]');
+        this.currentLevelIdx = parseInt(localStorage.getItem('cozy_cur_level') || '0');
+        this.gameMode = 'challenge'; // 'challenge' 关卡挑战 | 'free' 自由造景
+
+        this.placedStickers = [];
         this.activeId = null;
         this.currentCategory = 'windows';
         this.globalZ = 100;
+        this.lampOn = false;
+        this.recordPlaying = false;
 
         // DOM
-        this.viewport = document.getElementById('journalViewport');
-        this.canvas = document.getElementById('journalCanvas');
+        this.viewport = document.getElementById('gameViewport');
+        this.stage = document.getElementById('journalStage');
         this.container = document.getElementById('stickerContainer');
-        this.floor = document.getElementById('floorStrip');
-        this.overlay = document.getElementById('selectionOverlay');
+        this.silhouetteLayer = document.getElementById('silhouetteLayer');
+        this.selectionOverlay = document.getElementById('selectionOverlay');
         this.selectionBox = document.getElementById('selectionBox');
         this.drawer = document.getElementById('stickerDrawer');
         this.grid = document.getElementById('stickersGrid');
-        this.hint = document.getElementById('blankStartHint');
 
         this.init();
       }
 
       init() {
+        this.updateHUD();
         this.renderDrawer(this.currentCategory);
         this.bindEvents();
         this.bindControls();
+
+        if (this.gameMode === 'challenge') {
+          this.loadChallengeLevel(this.currentLevelIdx);
+        }
       }
 
-      setFloor(type) {
-        this.floor.className = 'absolute bottom-0 left-0 right-0 pointer-events-none transition-all duration-300';
-        if (type === 'wood') {
-          this.floor.classList.add('floor-wood-strip', 'h-[22%]');
-        } else if (type === 'tile') {
-          this.floor.classList.add('floor-tile-strip', 'h-[22%]');
-        } else if (type === 'grass') {
-          this.floor.classList.add('floor-grass-strip', 'h-[22%]');
+      updateHUD() {
+        document.getElementById('coinCount').innerText = this.coins;
+        const bagBadge = document.getElementById('bagBadge');
+        if (this.blindBags > 0) {
+          bagBadge.classList.remove('hidden');
         } else {
-          this.floor.classList.add('h-0', 'opacity-0');
+          bagBadge.classList.add('hidden');
+        }
+        localStorage.setItem('cozy_coins', this.coins);
+        localStorage.setItem('cozy_bags', this.blindBags);
+        localStorage.setItem('cozy_unlocked_rares', JSON.stringify(this.unlockedRares));
+      }
+
+      // 切换模式
+      toggleGameMode() {
+        this.gameMode = this.gameMode === 'challenge' ? 'free' : 'challenge';
+        const modeIcon = document.getElementById('modeIcon');
+        const modeText = document.getElementById('modeText');
+        const banner = document.getElementById('levelProgressBanner');
+
+        if (this.gameMode === 'challenge') {
+          modeIcon.innerText = '🧩';
+          modeText.innerText = '关卡挑战';
+          banner.classList.remove('hidden');
+          this.loadChallengeLevel(this.currentLevelIdx);
+        } else {
+          modeIcon.innerText = '🎨';
+          modeText.innerText = '自由造景';
+          banner.classList.add('hidden');
+          this.silhouetteLayer.innerHTML = '';
+          this.placedStickers = [];
+          this.renderAll();
         }
         audio.playClick();
       }
 
+      // 加载关卡
+      loadChallengeLevel(lvlIdx) {
+        this.currentLevelIdx = lvlIdx % CHAPTER_LEVELS.length;
+        const lvl = CHAPTER_LEVELS[this.currentLevelIdx];
+
+        document.getElementById('levelTitle').innerText = lvl.title;
+        document.getElementById('levelIcon').innerText = lvl.icon;
+        document.getElementById('levelStar').innerText = `★ ${lvl.rewardCoins} 金币`;
+        
+        this.placedStickers = [];
+        this.renderAll();
+        this.renderSilhouettes(lvl);
+        this.updateLevelProgress();
+      }
+
+      // 渲染关卡半透明目标剪影 (给玩家明确的复原追求)
+      renderSilhouettes(lvl) {
+        this.silhouetteLayer.innerHTML = '';
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        lvl.targets.forEach((tgt, idx) => {
+          const tpl = ALL_FLAT_STICKERS.find(s => s.id === tgt.tplId);
+          if (!tpl) return;
+
+          const el = document.createElement('div');
+          el.id = `target_${idx}`;
+          el.className = 'silhouette-target flex items-center justify-center';
+          el.style.width = tpl.width + 'px';
+          el.style.height = tpl.height + 'px';
+          el.style.left = (vw * tgt.xRatio - tpl.width / 2) + 'px';
+          el.style.top = (vh * tgt.yRatio - tpl.height / 2) + 'px';
+          el.innerHTML = `
+            <img src="${tpl.img}" class="w-full h-full object-contain opacity-25 grayscale pointer-events-none">
+          `;
+          this.silhouetteLayer.appendChild(el);
+        });
+      }
+
+      // 检查当前摆放与关卡剪影的吸附度与完成度
+      updateLevelProgress() {
+        if (this.gameMode !== 'challenge') return;
+        const lvl = CHAPTER_LEVELS[this.currentLevelIdx];
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let matchedCount = 0;
+
+        lvl.targets.forEach((tgt, idx) => {
+          const tgtX = vw * tgt.xRatio;
+          const tgtY = vh * tgt.yRatio;
+          const targetEl = document.getElementById(`target_${idx}`);
+
+          // 寻找是否有同类型贴纸落在附近 65px 内
+          const matched = this.placedStickers.find(stk => {
+            if (stk.templateId !== tgt.tplId) return false;
+            const sx = stk.x + stk.width / 2;
+            const sy = stk.y + stk.height / 2;
+            return Math.hypot(sx - tgtX, sy - tgtY) < 65;
+          });
+
+          if (matched) {
+            matchedCount++;
+            if (targetEl) targetEl.classList.add('is-filled');
+          } else {
+            if (targetEl) targetEl.classList.remove('is-filled');
+          }
+        });
+
+        const pct = Math.round((matchedCount / lvl.targets.length) * 100);
+        document.getElementById('levelProgressBar').style.width = pct + '%';
+        document.getElementById('levelProgressText').innerText = pct + '%';
+
+        // 100% 完美通关大惊喜！
+        if (pct === 100 && this.placedStickers.length >= lvl.targets.length) {
+          setTimeout(() => this.triggerLevelClear(lvl), 400);
+        }
+      }
+
+      // 通关喜报
+      triggerLevelClear(lvl) {
+        audio.playFanfare();
+        this.coins += lvl.rewardCoins;
+        this.blindBags += 1;
+        this.updateHUD();
+        document.getElementById('levelClearModal').classList.remove('hidden');
+      }
+
+      // 抽屉贴纸渲染
       renderDrawer(cat) {
         this.currentCategory = cat;
-        const all = [...customFlatStickers, ...FLAT_STICKER_LIBRARY];
-        const list = cat === 'custom' ? customFlatStickers : all.filter(s => s.cat === cat);
+        let list = [];
+
+        if (cat === 'collection') {
+          list = RARE_BLIND_STICKERS.filter(s => this.unlockedRares.includes(s.id));
+        } else {
+          list = ALL_FLAT_STICKERS.filter(s => s.cat === cat);
+        }
 
         if (list.length === 0) {
-          this.grid.innerHTML = `
-            <div class="col-span-4 sm:col-span-6 py-8 text-center text-xs text-[#8c7866]">
-              暂无贴纸，点击顶部「🔮 AI定制」画一张纯 2D 贴纸！
-            </div>
-          `;
+          if (cat === 'collection') {
+            this.grid.innerHTML = `
+              <div class="col-span-4 sm:col-span-6 py-6 text-center text-xs text-[#8c7866]">
+                暂无盲袋收藏！快去右上角「🎁 拆盲袋」抽取稀有限定贴纸吧！
+              </div>
+            `;
+          } else {
+            this.grid.innerHTML = `<div class="col-span-4 py-6 text-center text-xs text-[#8c7866]">暂无贴纸</div>`;
+          }
           return;
         }
 
         this.grid.innerHTML = list.map(item => `
-          <div class="sticker-tray-card rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#decbb8] cursor-pointer" data-id="${item.id}">
+          <div class="bg-white rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#decbb8] shadow-xs cursor-pointer active:scale-92 transition-all" data-id="${item.id}">
             <div class="w-full h-14 flex items-center justify-center p-0.5 pointer-events-none">
               <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain filter drop-shadow(0 2px 4px rgba(0,0,0,0.12))">
             </div>
@@ -642,11 +906,11 @@
       }
 
       addSticker(templateId, initialPos = null) {
-        const all = [...customFlatStickers, ...FLAT_STICKER_LIBRARY];
+        const all = [...ALL_FLAT_STICKERS, ...RARE_BLIND_STICKERS];
         const tpl = all.find(s => s.id === templateId);
         if (!tpl) return;
 
-        audio.playPeel();
+        audio.playRip();
 
         const vw = window.innerWidth;
         const vh = window.innerHeight;
@@ -666,7 +930,8 @@
           rotation: 0,
           scale: 1,
           flipped: false,
-          zIndex: tpl.baseZ ? tpl.baseZ : this.globalZ
+          zIndex: tpl.baseZ ? tpl.baseZ : this.globalZ,
+          isInteractive: tpl.isInteractive
         };
 
         this.placedStickers.push(instance);
@@ -674,8 +939,8 @@
         this.selectSticker(instance.uid);
 
         setTimeout(() => audio.playStick(), 60);
-        this.updateHint();
         this.collapseDrawer();
+        this.updateLevelProgress();
       }
 
       renderAll() {
@@ -683,7 +948,7 @@
         this.placedStickers.forEach(item => {
           const el = document.createElement('div');
           el.id = item.uid;
-          el.className = 'flat-sticker-node';
+          el.className = 'sticker-node';
           el.style.width = item.width + 'px';
           el.style.height = item.height + 'px';
           el.style.left = item.x + 'px';
@@ -693,8 +958,19 @@
           const transformStr = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
           el.style.transform = transformStr;
 
+          // 动态生动交互特效：猫咪呼吸、唱片转动、咖啡冒热气
+          let dynamicOverlay = '';
+          if (item.templateId === 'flat_record_player' && this.recordPlaying) {
+            dynamicOverlay = `<div class="absolute inset-2 rounded-full border-2 border-white/60 spinning-record pointer-events-none"></div>`;
+          } else if (item.templateId === 'flat_breakfast') {
+            dynamicOverlay = `<div class="absolute -top-3 left-6 text-stone-400 text-xs steam-anim pointer-events-none font-bold">~ ♨ ~</div>`;
+          } else if (item.templateId === 'flat_cat_orange') {
+            el.classList.add('cat-purring');
+          }
+
           el.innerHTML = `
             <img src="${item.img}" class="pointer-events-none">
+            ${dynamicOverlay}
           `;
 
           this.attachPointerGestures(el, item);
@@ -704,11 +980,12 @@
         this.updateSelectionBoxPosition();
       }
 
-      // 60fps 丝滑触控与双指捏合
+      // 触控手势 + 真实微缩场景交互触发
       attachPointerGestures(el, item) {
         let isDragging = false;
         let startX, startY;
         let origX, origY;
+        let moved = false;
         let activePointers = new Map();
         let initialDistance = 0;
         let initialScale = 1;
@@ -716,11 +993,12 @@
         const onPointerDown = (e) => {
           e.stopPropagation();
           this.selectSticker(item.uid);
-          audio.playPeel();
+          audio.playRip();
 
           el.setPointerCapture(e.pointerId);
           activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
+          moved = false;
           if (activePointers.size === 1) {
             isDragging = true;
             el.classList.add('is-dragging');
@@ -742,10 +1020,12 @@
           if (activePointers.size === 1 && isDragging) {
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
+            if (Math.hypot(deltaX, deltaY) > 5) moved = true;
+
             item.x = origX + deltaX;
             item.y = origY + deltaY;
 
-            // 水平地面磁吸对齐 (当家具贴到底部地面附近时，平整对齐地面)
+            // 地面平直磁吸对齐
             const floorTop = window.innerHeight * 0.78;
             const stickerBottom = item.y + item.height * item.scale;
             if (Math.abs(stickerBottom - floorTop) < 18) {
@@ -774,6 +1054,13 @@
             isDragging = false;
             el.classList.remove('is-dragging');
             audio.playStick();
+
+            // 若只是轻点(未移动)，触发微缩物品真实互动！
+            if (!moved && item.isInteractive) {
+              this.handleStickerInteraction(item);
+            }
+
+            this.updateLevelProgress();
           }
         };
 
@@ -783,15 +1070,47 @@
         el.addEventListener('pointercancel', onPointerUp);
       }
 
+      // 💡 沉浸互动彩蛋：点台灯开灯、点唱机放音乐、点猫咪喵喵叫
+      handleStickerInteraction(item) {
+        if (item.templateId === 'flat_lamp') {
+          this.lampOn = !this.lampOn;
+          const mask = document.getElementById('lampLightMask');
+          if (this.lampOn) {
+            mask.classList.remove('hidden');
+          } else {
+            mask.classList.add('hidden');
+          }
+          audio.playClick();
+        } else if (item.templateId === 'flat_record_player') {
+          this.recordPlaying = !this.recordPlaying;
+          if (this.recordPlaying) {
+            audio.setAmbience('lofi');
+          } else {
+            audio.setAmbience('mute');
+          }
+          this.renderAll();
+        } else if (item.templateId === 'flat_cat_orange' || item.templateId === 'rare_corgi') {
+          audio.playMeow();
+          const target = document.getElementById(item.uid);
+          if (target) {
+            target.style.transition = 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            target.style.transform += ' scale(1.18)';
+            setTimeout(() => {
+              target.style.transform = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
+            }, 180);
+          }
+        }
+      }
+
       selectSticker(uid) {
         this.activeId = uid;
-        this.overlay.classList.remove('hidden');
+        this.selectionOverlay.classList.remove('hidden');
         this.updateSelectionBoxPosition();
       }
 
       deselectAll() {
         this.activeId = null;
-        this.overlay.classList.add('hidden');
+        this.selectionOverlay.classList.add('hidden');
       }
 
       getActive() {
@@ -801,7 +1120,7 @@
       updateSelectionBoxPosition() {
         const active = this.getActive();
         if (!active || !this.activeId) {
-          this.overlay.classList.add('hidden');
+          this.selectionOverlay.classList.add('hidden');
           return;
         }
 
@@ -816,7 +1135,7 @@
         this.selectionBox.style.left = (cx - (w + padding * 2) / 2) + 'px';
         this.selectionBox.style.top = (cy - (h + padding * 2) / 2) + 'px';
         this.selectionBox.style.transform = `rotate(${active.rotation}deg)`;
-        this.overlay.classList.remove('hidden');
+        this.selectionOverlay.classList.remove('hidden');
       }
 
       bindControls() {
@@ -832,19 +1151,11 @@
         document.getElementById('pinDelete').addEventListener('pointerdown', (e) => {
           e.stopPropagation();
           if (!this.activeId) return;
-          const target = document.getElementById(this.activeId);
-          if (target) {
-            target.style.transition = 'all 0.15s ease-out';
-            target.style.transform += ' scale(0)';
-            target.style.opacity = '0';
-          }
-          audio.playDelete();
-          setTimeout(() => {
-            this.placedStickers = this.placedStickers.filter(s => s.uid !== this.activeId);
-            this.deselectAll();
-            this.renderAll();
-            this.updateHint();
-          }, 150);
+          this.placedStickers = this.placedStickers.filter(s => s.uid !== this.activeId);
+          this.deselectAll();
+          this.renderAll();
+          audio.playRip();
+          this.updateLevelProgress();
         });
 
         document.getElementById('pinLayer').addEventListener('pointerdown', (e) => {
@@ -859,10 +1170,7 @@
 
         const handle = document.getElementById('pinTransform');
         let isT = false;
-        let startAngle = 0;
-        let startDist = 0;
-        let initRot = 0;
-        let initScale = 1;
+        let startAngle = 0, startDist = 0, initRot = 0, initScale = 1;
 
         handle.addEventListener('pointerdown', (e) => {
           e.stopPropagation();
@@ -905,6 +1213,7 @@
             isT = false;
             window.removeEventListener('pointermove', onPointerMove);
             window.removeEventListener('pointerup', onPointerUp);
+            this.updateLevelProgress();
           };
 
           window.addEventListener('pointermove', onPointerMove);
@@ -922,15 +1231,47 @@
         document.getElementById('toggleDrawerBtn').innerText = '▼';
       }
 
-      updateHint() {
-        this.hint.style.opacity = this.placedStickers.length === 0 ? '1' : '0';
-      }
-
       bindEvents() {
-        document.getElementById('floorSelect').addEventListener('change', (e) => {
-          this.setFloor(e.target.value);
+        // 模式切换
+        document.getElementById('modeToggleBtn').addEventListener('click', () => {
+          this.toggleGameMode();
         });
 
+        // 盲袋弹窗开启
+        document.getElementById('openBlindBagBtn').addEventListener('click', () => {
+          document.getElementById('blindBagModal').classList.remove('hidden');
+          document.getElementById('foilBag').classList.remove('hidden');
+          document.getElementById('unboxedResult').classList.add('hidden');
+          audio.playClick();
+        });
+
+        document.getElementById('closeBlindBagBtn').addEventListener('click', () => {
+          document.getElementById('blindBagModal').classList.add('hidden');
+        });
+
+        // 撕开盲袋实感
+        document.getElementById('tearStrip').addEventListener('click', () => {
+          this.openBlindBag();
+        });
+
+        // 收下盲袋贴纸
+        document.getElementById('takeStickersBtn').addEventListener('click', () => {
+          document.getElementById('blindBagModal').classList.add('hidden');
+          this.renderDrawer('collection');
+          audio.playFanfare();
+        });
+
+        // 通关弹窗按键
+        document.getElementById('nextLevelBtn').addEventListener('click', () => {
+          document.getElementById('levelClearModal').classList.add('hidden');
+          this.loadChallengeLevel(this.currentLevelIdx + 1);
+        });
+
+        document.getElementById('stayExploreBtn').addEventListener('click', () => {
+          document.getElementById('levelClearModal').classList.add('hidden');
+        });
+
+        // 抽屉折叠
         document.getElementById('drawerHeader').addEventListener('click', (e) => {
           if (e.target.closest('.cat-tab')) return;
           if (this.drawer.classList.contains('is-collapsed')) {
@@ -941,6 +1282,7 @@
           audio.playClick();
         });
 
+        // 标签切换
         document.querySelectorAll('.cat-tab').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -955,14 +1297,14 @@
         });
 
         this.grid.addEventListener('click', (e) => {
-          const card = e.target.closest('.sticker-tray-card');
+          const card = e.target.closest('[data-id]');
           if (card) {
             this.addSticker(card.dataset.id);
           }
         });
 
         this.viewport.addEventListener('pointerdown', (e) => {
-          if (e.target === this.viewport || e.target === this.canvas || e.target.id === 'floorStrip') {
+          if (e.target === this.viewport || e.target === this.stage || e.target.id === 'floorStrip') {
             this.deselectAll();
           }
         });
@@ -972,13 +1314,12 @@
         });
 
         document.getElementById('clearBtn').addEventListener('click', () => {
-          if (this.placedStickers.length === 0) return;
-          if (confirm('确定要清空吗？将重新面对一张干净的手帐纸！')) {
+          if (confirm('确定要清空画板吗？')) {
             this.placedStickers = [];
             this.deselectAll();
             this.renderAll();
-            this.updateHint();
-            audio.playDelete();
+            audio.playRip();
+            this.updateLevelProgress();
           }
         });
 
@@ -991,7 +1332,57 @@
         });
       }
 
-      // 拍立得 2D 手帐照片高清导出
+      // 🎁 拆盲袋核心逻辑 (撕开包装 + 获得新贴纸)
+      openBlindBag() {
+        if (this.blindBags <= 0 && this.coins < 100) {
+          alert('盲袋和金币不足！通关关卡即可获得金币和免费盲袋哦！');
+          return;
+        }
+
+        if (this.blindBags > 0) {
+          this.blindBags--;
+        } else {
+          this.coins -= 100;
+        }
+        this.updateHUD();
+
+        audio.playRip();
+        const foil = document.getElementById('foilBag');
+        foil.style.transform = 'scale(0.8) rotate(-8deg)';
+        foil.style.opacity = '0';
+
+        setTimeout(() => {
+          foil.classList.add('hidden');
+          foil.style.transform = '';
+          foil.style.opacity = '1';
+
+          // 随机挑选 2 张未解锁或稀有贴纸
+          const pickPool = RARE_BLIND_STICKERS;
+          const picked1 = pickPool[Math.floor(Math.random() * pickPool.length)];
+          let picked2 = pickPool[Math.floor(Math.random() * pickPool.length)];
+          if (picked1.id === picked2.id) {
+            picked2 = pickPool[(pickPool.indexOf(picked1) + 1) % pickPool.length];
+          }
+
+          if (!this.unlockedRares.includes(picked1.id)) this.unlockedRares.push(picked1.id);
+          if (!this.unlockedRares.includes(picked2.id)) this.unlockedRares.push(picked2.id);
+          this.updateHUD();
+
+          document.getElementById('unboxedCards').innerHTML = `
+            <div class="bg-white rounded-2xl p-3 border-2 border-amber-300 shadow-md flex flex-col items-center">
+              <img src="${picked1.img}" class="w-16 h-16 object-contain">
+              <span class="text-[10px] font-bold text-amber-800 mt-1">${picked1.name}</span>
+            </div>
+            <div class="bg-white rounded-2xl p-3 border-2 border-amber-300 shadow-md flex flex-col items-center">
+              <img src="${picked2.img}" class="w-16 h-16 object-contain">
+              <span class="text-[10px] font-bold text-amber-800 mt-1">${picked2.name}</span>
+            </div>
+          `;
+          document.getElementById('unboxedResult').classList.remove('hidden');
+          audio.playFanfare();
+        }, 300);
+      }
+
       exportImage() {
         audio.playClick();
         const vw = window.innerWidth;
@@ -1003,12 +1394,11 @@
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
 
-        // 1. 绘制手帐纸张底色
-        ctx.fillStyle = '#faf5ec';
+        ctx.fillStyle = '#faf5eb';
         ctx.fillRect(0, 0, vw, vh);
 
-        // 2. 绘制网格线
-        ctx.strokeStyle = 'rgba(180, 160, 140, 0.15)';
+        // 网格线
+        ctx.strokeStyle = 'rgba(180, 155, 130, 0.15)';
         ctx.lineWidth = 1;
         for (let x = 0; x < vw; x += 20) {
           ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, vh); ctx.stroke();
@@ -1017,32 +1407,23 @@
           ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(vw, y); ctx.stroke();
         }
 
-        // 3. 绘制地面
-        const floorType = document.getElementById('floorSelect').value;
+        // 地面
         const floorH = vh * 0.22;
         const floorY = vh - floorH;
+        const woodGrad = ctx.createLinearGradient(0, floorY, 0, vh);
+        woodGrad.addColorStop(0, '#9b6c42');
+        woodGrad.addColorStop(1, '#8d5e35');
+        ctx.fillStyle = woodGrad;
+        ctx.fillRect(0, floorY, vw, floorH);
+        ctx.strokeStyle = '#633f20';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(vw, floorY); ctx.stroke();
 
-        if (floorType === 'wood') {
-          const woodGrad = ctx.createLinearGradient(0, floorY, 0, vh);
-          woodGrad.addColorStop(0, '#9b6c42');
-          woodGrad.addColorStop(1, '#8d5e35');
-          ctx.fillStyle = woodGrad;
-          ctx.fillRect(0, floorY, vw, floorH);
-          ctx.strokeStyle = '#633f20';
-          ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(vw, floorY); ctx.stroke();
-        } else if (floorType === 'grass') {
-          ctx.fillStyle = '#5b8c5a';
-          ctx.fillRect(0, floorY, vw, floorH);
-          ctx.strokeStyle = '#365935';
-          ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(vw, floorY); ctx.stroke();
-        }
-
-        // 4. 按层级绘制所有贴纸
         const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
         if (sorted.length === 0) {
-          this.showExport(canvas.toDataURL('image/png'));
+          document.getElementById('exportPreview').src = canvas.toDataURL('image/png');
+          document.getElementById('downloadBtn').href = canvas.toDataURL('image/png');
+          document.getElementById('exportModal').classList.remove('hidden');
           return;
         }
 
@@ -1060,40 +1441,39 @@
 
             loaded++;
             if (loaded === sorted.length) {
-              // 手帐白边边框与日付印章
               ctx.strokeStyle = '#ffffff';
               ctx.lineWidth = 12;
               ctx.strokeRect(6, 6, vw - 12, vh - 12);
               ctx.font = 'bold 12px sans-serif';
               ctx.fillStyle = '#7a6856';
-              ctx.fillText(`✨ 2D 平面手帐造景 · My Journal Room`, 24, vh - 22);
+              ctx.fillText(`✨ 治愈手帐造景物语 · My Journal Diorama`, 24, vh - 22);
 
-              this.showExport(canvas.toDataURL('image/png'));
+              const url = canvas.toDataURL('image/png');
+              document.getElementById('exportPreview').src = url;
+              document.getElementById('downloadBtn').href = url;
+              document.getElementById('exportModal').classList.remove('hidden');
             }
           };
           img.onerror = () => {
             loaded++;
             if (loaded === sorted.length) {
-              this.showExport(canvas.toDataURL('image/png'));
+              const url = canvas.toDataURL('image/png');
+              document.getElementById('exportPreview').src = url;
+              document.getElementById('downloadBtn').href = url;
+              document.getElementById('exportModal').classList.remove('hidden');
             }
           };
           img.src = item.img;
         });
       }
-
-      showExport(dataUrl) {
-        document.getElementById('exportPreview').src = dataUrl;
-        document.getElementById('downloadBtn').href = dataUrl;
-        document.getElementById('exportModal').classList.remove('hidden');
-      }
     }
 
     /* ==========================================================================
-       4. 🔮 Grok AI 2D 平面贴纸工坊 (注入纯正视图提示词)
+       5. 🔮 Grok AI 2D 平面贴纸工坊
        ========================================================================== */
     class FlatAiWorkshop {
-      constructor(app) {
-        this.app = app;
+      constructor(game) {
+        this.game = game;
         this.apiKey = 'sk-Tkh8xl7XqIlbiGje1wI9g6HJBnCSZqFBm2W9ym5Q';
         this.modal = document.getElementById('aiModal');
         this.input = document.getElementById('aiInput');
@@ -1115,13 +1495,6 @@
           this.modal.classList.add('hidden');
         });
 
-        document.querySelectorAll('.prompt-chip').forEach(chip => {
-          chip.addEventListener('click', () => {
-            this.input.value = chip.innerText.replace(/^[^\s]+\s*/, '');
-            audio.playClick();
-          });
-        });
-
         this.btn.addEventListener('click', () => this.generate());
       }
 
@@ -1136,9 +1509,8 @@
         this.spinner.classList.remove('hidden');
         this.btnText.innerText = 'Grok 正在绘制 2D 正视角...';
         this.status.classList.remove('hidden');
-        audio.playPeel();
+        audio.playRip();
 
-        // 强约束：纯 2D 平视立面
         const fullPrompt = `Die-cut sticker of ${val}, pure 2D flat front elevation view, straight front facing, cute flat anime cartoon sticker, thick white sticker border outline, solid pure white background, flat 2d scrapbooking design`;
 
         try {
@@ -1162,7 +1534,7 @@
           }
 
           const rawUrl = data.data[0].url;
-          this.btnText.innerText = '正在进行背景透明处理...';
+          this.btnText.innerText = '正在去除白底...';
 
           const transparentPng = await this.removeWhite(rawUrl);
 
@@ -1175,16 +1547,11 @@
             height: 95
           };
 
-          customFlatStickers.unshift(newSticker);
-          localStorage.setItem('my_flat_custom_stickers', JSON.stringify(customFlatStickers));
-
+          this.game.addSticker(newSticker.id);
           this.modal.classList.add('hidden');
           this.input.value = '';
-          this.app.renderDrawer('custom');
-          this.app.addSticker(newSticker.id);
           audio.playStick();
-
-          alert('🎉 你的纯 2D 平面贴纸已绘制完成，已贴入房间！');
+          alert('🎉 你的专属贴纸已绘制完成！');
         } catch (e) {
           alert('绘制失败，请重试：' + (e.message || e));
         } finally {
@@ -1201,17 +1568,13 @@
           img.crossOrigin = 'anonymous';
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const targetSize = 400;
-            canvas.width = targetSize;
-            canvas.height = targetSize;
+            canvas.width = 400; canvas.height = 400;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, targetSize, targetSize);
+            ctx.drawImage(img, 0, 0, 400, 400);
 
-            const imgData = ctx.getImageData(0, 0, targetSize, targetSize);
+            const imgData = ctx.getImageData(0, 0, 400, 400);
             const d = imgData.data;
-            const w = targetSize;
-            const h = targetSize;
-
+            const w = 400, h = 400;
             const visited = new Uint8Array(w * h);
             const queue = [];
 
@@ -1258,8 +1621,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      window.app = new FlatDioramaApp();
-      window.aiWorkshop = new FlatAiWorkshop(window.app);
+      window.game = new CozyJournalGame();
+      window.aiWorkshop = new FlatAiWorkshop(window.game);
     });
   </script>
 </body>
