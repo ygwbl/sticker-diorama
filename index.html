@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>造景贴纸小憩 · 1:1复刻实景手帐</title>
+  <title>造景贴纸小憩 · 2D平面手帐拼贴</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -19,96 +19,138 @@
       padding: 0;
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background-color: #1a1614;
+      background-color: #26201b;
     }
-    /* 全屏画板容器 */
-    #worldViewport {
+    /* 全屏手帐画板 */
+    #journalViewport {
       width: 100vw;
       height: 100vh;
       overflow: hidden;
       position: relative;
       touch-action: none;
     }
-    /* 拟真贴纸层 */
-    .sticker-element {
+    /* 手帐纸张纹理与点阵网格 (纯2D平面底纸) */
+    .journal-paper-cream {
+      background-color: #faf5ec;
+      background-image: 
+        linear-gradient(rgba(180, 160, 140, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(180, 160, 140, 0.12) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .journal-paper-kraft {
+      background-color: #eee1cc;
+      background-image: radial-gradient(rgba(120, 95, 70, 0.14) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    .journal-paper-white {
+      background-color: #fbfbfb;
+      background-image: 
+        linear-gradient(rgba(200, 200, 200, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 200, 200, 0.15) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* 水平平直地板胶带 (划分天地两分法) */
+    .floor-wood-strip {
+      background: linear-gradient(180deg, #9b6c42 0%, #b88657 8%, #8d5e35 100%);
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
+      border-top: 3px solid #633f20;
+    }
+    .floor-tile-strip {
+      background-color: #eae5dc;
+      background-image: 
+        linear-gradient(45deg, #38332e 25%, transparent 25%), 
+        linear-gradient(-45deg, #38332e 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #38332e 75%), 
+        linear-gradient(-45deg, transparent 75%, #38332e 75%);
+      background-size: 32px 32px;
+      background-position: 0 0, 0 16px, 16px -16px, -16px 0px;
+      border-top: 3px solid #231f1c;
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
+    }
+    .floor-grass-strip {
+      background: linear-gradient(180deg, #5b8c5a 0%, #4a7549 100%);
+      border-top: 3px solid #365935;
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.15);
+    }
+
+    /* 纯 2D 平面贴纸物理浮起与模切白边 */
+    .flat-sticker-node {
       position: absolute;
       touch-action: none;
       transform-origin: center center;
       transition: filter 0.15s cubic-bezier(0.2, 0.9, 0.3, 1);
       cursor: grab;
-      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22));
+      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.16));
     }
-    .sticker-element:active, .sticker-element.is-dragging {
+    .flat-sticker-node:active, .flat-sticker-node.is-dragging {
       cursor: grabbing;
-      filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.42)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25)) !important;
+      filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.32)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18)) !important;
       z-index: 9999 !important;
     }
-    /* 拟真模切外边线 */
-    .sticker-element img {
+    .flat-sticker-node img {
       width: 100%;
       height: 100%;
       object-fit: contain;
       pointer-events: none;
     }
-    /* 贴纸册卡片质感 */
-    .sticker-sheet-item {
-      background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(246,242,235,0.85) 100%);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+
+    /* 贴纸卡片质感 */
+    .sticker-tray-card {
+      background: #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(0,0,0,0.04);
       transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .sticker-sheet-item:active {
-      transform: scale(0.9);
+    .sticker-tray-card:active {
+      transform: scale(0.92);
     }
+
     /* 选框控制点 */
     .selection-box {
-      border: 2px dashed #f97316;
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.8), inset 0 0 18px rgba(249, 115, 22, 0.1);
+      border: 2px dashed #e76f51;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.8), inset 0 0 15px rgba(231, 111, 81, 0.08);
       pointer-events: none;
     }
     .handle-pin {
       pointer-events: auto;
       touch-action: none;
       transition: transform 0.15s ease;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
     }
     .handle-pin:active {
       transform: scale(1.25);
     }
+
     /* 隐藏滚动条 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* 贴纸册折叠抽屉动效 */
+    /* 抽屉式收纳动画 */
     #stickerDrawer {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
     }
     #stickerDrawer.is-collapsed {
-      transform: translateY(calc(100% - 48px));
-    }
-    /* 离型纸微孔背景 */
-    .release-paper-bg {
-      background-color: #faf7f2;
-      background-image: radial-gradient(#dfd5c5 1px, transparent 1px);
-      background-size: 10px 10px;
+      transform: translateY(calc(100% - 46px));
     }
   </style>
 </head>
 <body>
 
-  <!-- 全屏沉浸式工作台 (占据 100% 视口，无边框拘束，大图尽收眼底) -->
-  <div id="worldViewport">
+  <!-- 全屏手帐画板视口 (纯 2D 平面，天地两分横平竖直) -->
+  <div id="journalViewport" class="journal-paper-cream">
     
-    <!-- 房间舞台容器 (支持双指缩放和平移) -->
-    <div id="roomStage" class="absolute inset-0 w-full h-full bg-cover bg-center select-none transition-transform duration-75">
-      <!-- 裸房背景图 -->
-      <div id="roomBackground" class="absolute inset-0 bg-cover bg-center pointer-events-none"></div>
+    <!-- 房间舞台容器 -->
+    <div id="journalCanvas" class="absolute inset-0 w-full h-full select-none">
+      
+      <!-- 底部平直地面胶带 (水平地平线，家具脚部直接踩在此处) -->
+      <div id="floorStrip" class="floor-wood-strip absolute bottom-0 left-0 right-0 h-[22%] pointer-events-none transition-all duration-300">
+        <!-- 踢脚线微阴影 -->
+        <div class="w-full h-1.5 bg-black/15"></div>
+      </div>
 
-      <!-- 丁达尔微尘与环境粒子 Canvas -->
-      <canvas id="dustCanvas" class="absolute inset-0 pointer-events-none opacity-60 z-10"></canvas>
-
-      <!-- 核心贴纸容器 -->
+      <!-- 贴纸物理摆放容器 -->
       <div id="stickerContainer" class="absolute inset-0 overflow-hidden z-20">
-        <!-- 贴纸元素动态渲染在此 -->
+        <!-- 纯平面贴纸动态渲染在此 -->
       </div>
 
       <!-- 选中贴纸外框手柄 -->
@@ -122,101 +164,95 @@
           <button id="pinDelete" class="handle-pin absolute -top-4 -right-4 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold border border-white/80" title="撕掉丢弃">
             ✕
           </button>
-          <!-- ⬆️ 图层层级切换 -->
+          <!-- ⬆️ 图层层级循环 -->
           <button id="pinLayer" class="handle-pin absolute -bottom-4 -left-4 w-8 h-8 rounded-full bg-white text-[#4a3b2b] flex items-center justify-center text-sm font-bold border border-[#d8c8b5]" title="置顶或下移">
             ⬆️
           </button>
-          <!-- 🔄 复合旋转与缩放手柄 (单手拇指顺滑拉扯) -->
-          <div id="pinTransform" class="handle-pin absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-[#f97316] text-white flex items-center justify-center text-sm font-bold border-2 border-white cursor-nwse-resize shadow-xl" title="按住拖拽自由旋转和缩放">
+          <!-- 🔄 复合旋转与缩放手柄 -->
+          <div id="pinTransform" class="handle-pin absolute -bottom-4 -right-4 w-8 h-8 rounded-full bg-[#e76f51] text-white flex items-center justify-center text-sm font-bold border-2 border-white cursor-nwse-resize shadow-xl" title="按住拖拽自由旋转和缩放">
             🔄
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 顶层极简浮动 HUD (半透明毛玻璃，不遮挡视线) -->
+    <!-- 顶层极简浮动 HUD (手帐工具条) -->
     <header class="absolute top-3 left-3 right-3 flex items-center justify-between z-30 pointer-events-none">
-      <!-- 裸房切换胶囊 -->
-      <div class="pointer-events-auto bg-black/55 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 flex items-center gap-2 shadow-xl">
-        <span class="text-xs text-white/70 font-medium">🏛️ 框架:</span>
-        <select id="bareRoomSelect" class="bg-transparent text-xs text-white font-semibold outline-none cursor-pointer">
-          <option value="room_bare_wood" class="text-stone-900" selected>🪵 温暖原木空房</option>
-          <option value="room_bare_vintage" class="text-stone-900">🏛️ 复古砖木空房</option>
-          <option value="room_bare_sunroom" class="text-stone-900">🌿 全景玻璃花房</option>
-          <option value="bg_sunset" class="text-stone-900">🌅 拱窗日落空房</option>
+      
+      <!-- 地板材质胶带切换 -->
+      <div class="pointer-events-auto bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#decbb8] flex items-center gap-1.5 shadow-md">
+        <span class="text-xs text-[#7d6752] font-semibold">🪵 地面:</span>
+        <select id="floorSelect" class="bg-transparent text-xs text-[#4a3a2a] font-bold outline-none cursor-pointer">
+          <option value="wood" selected>实木地板条</option>
+          <option value="tile">复古棋盘格</option>
+          <option value="grass">春日绿草坪</option>
+          <option value="none">纯纸面留白</option>
         </select>
       </div>
 
-      <!-- 右侧工具胶囊 -->
-      <div class="pointer-events-auto flex items-center gap-1.5 bg-black/55 backdrop-blur-md p-1 rounded-full border border-white/15 shadow-xl">
-        <!-- 氛围音效切换 -->
-        <button id="ambientBtn" class="px-2.5 py-1 rounded-full text-xs text-white/90 font-medium hover:bg-white/15 active:scale-95 transition-all flex items-center gap-1" title="切换背景白噪音">
+      <!-- 右侧控制胶囊 -->
+      <div class="pointer-events-auto flex items-center gap-1.5 bg-white/90 backdrop-blur-md p-1 rounded-full border border-[#decbb8] shadow-md">
+        <!-- 白噪音氛围 -->
+        <button id="ambientBtn" class="px-2.5 py-1 rounded-full text-xs text-[#5a4837] font-semibold hover:bg-stone-100 active:scale-95 transition-all flex items-center gap-1" title="切换背景白噪音">
           <span id="ambientIcon">🌧️</span>
           <span id="ambientLabel" class="text-[11px] hidden sm:inline">雨声</span>
         </button>
 
-        <!-- 🔮 AI定制贴纸 -->
-        <button id="openAiBtn" class="px-2.5 py-1 rounded-full text-xs bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-xs active:scale-95 transition-all flex items-center gap-1" title="Grok AI 实时画贴纸">
+        <!-- 🔮 AI定制 2D 平面贴纸 -->
+        <button id="openAiBtn" class="px-2.5 py-1 rounded-full text-xs bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold shadow-xs active:scale-95 transition-all flex items-center gap-1" title="Grok AI 实时画 2D 平面贴纸">
           <span>🔮</span><span class="text-[11px]">AI定制</span>
         </button>
 
         <!-- 清空重置 -->
-        <button id="clearBtn" class="p-1.5 rounded-full text-xs text-red-300 hover:bg-white/15 active:scale-95 transition-all" title="清空全部贴纸，从零打造">
+        <button id="clearBtn" class="p-1.5 rounded-full text-xs text-red-500 hover:bg-red-50 active:scale-95 transition-all" title="清空画板，从一张白纸重新开始">
           🗑️
         </button>
 
-        <!-- 保存壁纸 -->
+        <!-- 保存手帐相片 -->
         <button id="exportBtn" class="px-3 py-1 rounded-full text-xs bg-[#e76f51] text-white font-bold shadow-md hover:bg-[#d95d3f] active:scale-95 transition-all flex items-center gap-1">
           <span>📸</span><span>保存</span>
         </button>
       </div>
     </header>
 
-    <!-- 开局空状态沉浸式新手向导 (只有在 0 贴纸时显示) -->
+    <!-- 0 贴纸空白手帐开局提示 -->
     <div id="blankStartHint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-6 z-20 transition-opacity duration-300">
-      <div class="bg-black/60 backdrop-blur-md border border-white/20 text-white px-5 py-3.5 rounded-3xl shadow-2xl flex flex-col items-center gap-1.5 max-w-xs">
-        <span class="text-3xl animate-bounce">✨</span>
-        <h2 class="text-sm font-bold tracking-tight">1:1 从零打造你的房间</h2>
-        <p class="text-[11px] text-white/75 leading-relaxed">
-          开局是一间完全空旷的毛坯房。<br>从下方贴纸册选择门窗、地毯、家具，亲手把空房间一点点填满吧！
+      <div class="bg-white/95 backdrop-blur-md border-2 border-[#d9ccba] text-[#4a3b2b] px-6 py-4 rounded-3xl shadow-xl flex flex-col items-center gap-1.5 max-w-xs">
+        <span class="text-3xl animate-bounce">📔</span>
+        <h2 class="text-sm font-bold tracking-tight">纯 2D 平面手帐造景</h2>
+        <p class="text-[11px] text-[#786450] leading-relaxed">
+          面对完全平整的手帐纸张，先在墙上贴一扇窗，再在平直地板上摆放桌椅与猫咪，享受纯正手帐拼贴！
         </p>
-        <span class="text-[10px] text-amber-300 mt-1">👇 点击下方贴纸册撕下第一张贴纸</span>
+        <span class="text-[10px] text-orange-600 font-semibold mt-1">👇 点击下方抽屉挑选第一张贴纸</span>
       </div>
     </div>
 
-    <!-- 底部抽屉式离型贴纸册 (可折叠 / 可展开，彻底解放屏幕空间) -->
-    <footer id="stickerDrawer" class="absolute bottom-0 left-0 right-0 z-30 flex flex-col release-paper-bg border-t-2 border-[#d9ccba] shadow-[0_-8px_30px_rgba(0,0,0,0.25)] rounded-t-3xl overflow-hidden max-h-[340px]">
+    <!-- 底部抽屉式离型贴纸册 (纯平面正视分类) -->
+    <footer id="stickerDrawer" class="absolute bottom-0 left-0 right-0 z-30 flex flex-col bg-[#f5ede1] border-t-2 border-[#d9ccba] shadow-[0_-6px_25px_rgba(0,0,0,0.15)] rounded-t-3xl overflow-hidden max-h-[340px]">
       
-      <!-- 抽屉顶部把手与分类标签栏 (点击把手折叠/展开) -->
-      <div id="drawerHeader" class="px-3 pt-2 pb-1.5 flex flex-col gap-1 border-b border-[#e2d5c3] bg-[#f2e9dc] cursor-pointer">
-        <!-- 居中滑动把手条 -->
+      <!-- 抽屉顶部把手与分类标签栏 -->
+      <div id="drawerHeader" class="px-3 pt-2 pb-1.5 flex flex-col gap-1 border-b border-[#dfd0bd] bg-[#ede1cf] cursor-pointer">
         <div class="w-10 h-1 rounded-full bg-[#baa691] mx-auto opacity-75"></div>
 
         <div class="flex items-center justify-between gap-1 overflow-x-auto no-scrollbar pt-1">
           <div class="flex items-center gap-1 shrink-0">
-            <button data-cat="windows" class="cat-tab px-2.5 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white transition-all shadow-xs">
-              🪟 ①门窗
+            <button data-cat="windows" class="cat-tab px-2.5 py-1 rounded-full text-xs font-semibold bg-[#e76f51] text-white transition-all shadow-xs">
+              🪟 ①平视门窗
             </button>
-            <button data-cat="rugs" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              🧱 ②地毯墙面
-            </button>
-            <button data-cat="big_furniture" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              🛋️ ③大件家具
-            </button>
-            <button data-cat="small_furniture" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              🪑 ④桌椅小件
+            <button data-cat="furniture" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
+              🛋️ ②正视家具
             </button>
             <button data-cat="plants" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              🌿 ⑤绿植盆栽
+              🌿 ③垂挂绿植
             </button>
             <button data-cat="pets" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              🐱 ⑥治愈萌宠
+              🐱 ④治愈萌宠
             </button>
             <button data-cat="props" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              ☕ ⑦美食微缩
+              ☕ ⑤桌面微缩
             </button>
             <button data-cat="custom" class="cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all">
-              ✨ ⑧我的定制
+              ✨ ⑥我的定制
             </button>
           </div>
           <button id="toggleDrawerBtn" class="shrink-0 p-1 text-xs text-[#8c7866] font-bold">
@@ -225,15 +261,15 @@
         </div>
       </div>
 
-      <!-- 贴纸册展示格子区 (拟真离型底纸) -->
-      <div id="stickersGrid" class="p-3 grid grid-cols-4 sm:grid-cols-6 gap-2.5 overflow-y-auto max-h-[220px] no-scrollbar">
+      <!-- 纯平面贴纸册卡片展示网格 -->
+      <div id="stickersGrid" class="p-3 grid grid-cols-4 sm:grid-cols-6 gap-2.5 overflow-y-auto max-h-[220px] no-scrollbar bg-[#f8f2e9]">
         <!-- 动态渲染贴纸卡片 -->
       </div>
     </footer>
 
   </div>
 
-  <!-- 🔮 Grok AI 贴纸工坊模态框 -->
+  <!-- 🔮 Grok AI 贴纸工坊模态框 (强制纯 2D 平面正视模式) -->
   <div id="aiModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col gap-3.5 border border-[#e5d8c7] shadow-2xl relative">
       <button id="closeAiBtn" class="absolute top-4 right-4 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">
@@ -242,47 +278,47 @@
       <div>
         <div class="flex items-center gap-1.5">
           <span class="text-xl">🔮</span>
-          <h3 class="font-bold text-base text-[#4a3b2b]">Grok AI 贴纸工坊</h3>
+          <h3 class="font-bold text-base text-[#4a3b2b]">Grok AI 2D平面贴纸工坊</h3>
         </div>
-        <p class="text-xs text-[#826f5d] mt-1">自己想要什么贴纸，输入一句话直接画出来！</p>
+        <p class="text-xs text-[#826f5d] mt-1">自动绘制横平竖直的正视立面贴纸，与手帐完美贴合！</p>
       </div>
 
       <!-- 灵感 Chips -->
       <div class="flex flex-wrap gap-1.5">
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🍓 草莓抹茶芭菲杯</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🧶 玩毛线球的折耳猫</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🎸 复古原木电吉他</span>
-        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🌙 悬浮流光小月球灯</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🪟 法式落地双开拱门窗</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🍰 草莓千层切件蛋糕</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🛋️ 复古墨绿色丝绒双人沙发</span>
+        <span class="prompt-chip text-[11px] px-2 py-1 bg-white border border-[#decbb8] rounded-lg text-[#6d5b4a] cursor-pointer active:scale-95">🐈 趴在桌面打盹的银渐层猫咪</span>
       </div>
 
       <div class="flex flex-col gap-2">
-        <input id="aiInput" type="text" placeholder="输入想要的贴纸，如：日落落地大拱窗..." class="w-full px-3.5 py-2.5 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
+        <input id="aiInput" type="text" placeholder="输入想要的贴纸，如：日系木制双层餐边柜..." class="w-full px-3.5 py-2.5 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
         <button id="doGenerateBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#e76f51] to-[#f4a261] text-white text-xs font-bold shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5">
           <span id="aiSpinner" class="hidden animate-spin">⏳</span>
-          <span id="aiBtnText">✨ 立即绘制专属贴纸</span>
+          <span id="aiBtnText">✨ 绘制纯 2D 平面贴纸</span>
         </button>
       </div>
       <div id="aiStatus" class="text-[11px] text-center text-[#8d7966] hidden">
-        Grok 正在绘制中并进行透明白边处理，约 10 秒...
+        Grok 正在以 2D 平面正视角绘制与透明抠图，约 10 秒...
       </div>
     </div>
   </div>
 
-  <!-- 📸 导出高清壁纸海报弹窗 -->
+  <!-- 📸 导出高清手帐海报模态框 -->
   <div id="exportModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col items-center gap-4 border border-[#e5d8c7] shadow-2xl">
       <div class="text-center">
-        <h3 class="font-bold text-base text-[#4a3b2b]">🎉 你的微缩造景诞生了！</h3>
-        <p class="text-xs text-[#826f5d] mt-1">从零打造的专属小屋，长按保存壁纸</p>
+        <h3 class="font-bold text-base text-[#4a3b2b]">🎉 你的手帐造景已完成！</h3>
+        <p class="text-xs text-[#826f5d] mt-1">纯 2D 平面手作微缩空间，长按保存相片</p>
       </div>
       <div class="w-full rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-stone-900">
-        <img id="exportPreview" src="" alt="Diorama Export" class="w-full h-auto block">
+        <img id="exportPreview" src="" alt="Journal Export" class="w-full h-auto block">
       </div>
       <div class="flex items-center gap-2 w-full">
         <button id="closeExportBtn" class="flex-1 py-2.5 rounded-xl bg-white border border-[#d8c8b5] text-xs font-semibold text-[#6f5e4d] active:scale-95">
-          返回继续打造
+          返回继续拼贴
         </button>
-        <a id="downloadBtn" download="my_custom_room.png" class="flex-1 py-2.5 text-center rounded-xl bg-[#d97d54] text-white text-xs font-bold shadow-md active:scale-95">
+        <a id="downloadBtn" download="my_flat_journal_diorama.png" class="flex-1 py-2.5 text-center rounded-xl bg-[#e76f51] text-white text-xs font-bold shadow-md active:scale-95">
           📥 下载到手机
         </a>
       </div>
@@ -291,12 +327,12 @@
 
   <script>
     /* ==========================================================================
-       1. 沉浸式环境音效引擎 (零依赖 Web Audio API)
+       1. 手帐专用 ASMR 撕贴音效与白噪音
        ========================================================================== */
-    class AudioEngine {
+    class JournalAudioEngine {
       constructor() {
         this.ctx = null;
-        this.ambience = 'rain'; // 'rain', 'fire', 'lofi', 'mute'
+        this.ambience = 'rain';
         this.nodes = [];
       }
       init() {
@@ -421,6 +457,7 @@
           });
         }, 3200);
       }
+      // 撕贴纸声
       playPeel() {
         this.init();
         if (!this.ctx) return;
@@ -445,6 +482,7 @@
           if (navigator.vibrate) navigator.vibrate(10);
         } catch (e) {}
       }
+      // 贴平纸张 Pop 声
       playStick() {
         this.init();
         if (!this.ctx) return;
@@ -498,179 +536,103 @@
         } catch (e) {}
       }
     }
-    const audio = new AudioEngine();
+    const audio = new JournalAudioEngine();
 
     /* ==========================================================================
-       2. 纯净裸房与全模块化贴纸库 (分步骤搭建你的小家)
+       2. 纯 2D 平面贴纸库 (完全正面平视立面，严格依照真实手帐层级)
        ========================================================================== */
-    const BARE_ROOMS = {
-      room_bare_wood: {
-        name: '温暖原木空房',
-        bg: './assets/room_bare_wood.jpg'
-      },
-      room_bare_vintage: {
-        name: '复古砖木空房',
-        bg: './assets/room_bare_vintage.jpg'
-      },
-      room_bare_sunroom: {
-        name: '全景玻璃花房',
-        bg: './assets/room_bare_sunroom.jpg'
-      },
-      bg_sunset: {
-        name: '拱窗日落空房',
-        bg: './assets/bg_sunset.jpg'
-      }
-    };
+    const FLAT_STICKER_LIBRARY = [
+      // 🪟 ① 纯正面平视窗户 (Base Layer: 贴在最底层)
+      { id: 'flat_arch_window', cat: 'windows', baseZ: 5, name: '拱形日落窗景', img: './assets/flat_arch_window.png', width: 140, height: 165 },
+      { id: 'flat_square_window', cat: 'windows', baseZ: 5, name: '绿意方格木窗', img: './assets/flat_square_window.png', width: 135, height: 135 },
 
-    // 智能分层默认深度：门窗地毯在最底层(5-15)，大件居中(20-40)，软装微缩在顶层(50-80)
-    const STICKER_LIBRARY = [
-      // 🪟 ① 门窗外景 (Base Layer)
-      { id: 'stk_arch_window', cat: 'windows', baseZ: 5, name: '拱形日落窗景', img: './assets/stk_arch_window.png', width: 140, height: 160 },
-      { id: 'stk_sun_beam', cat: 'windows', baseZ: 95, name: '百叶窗暖阳斜影', img: './assets/stk_sun_beam.png', width: 150, height: 130 },
+      // 🛋️ ② 纯正面正视家具 (Mid Layer: 站在平直地面上)
+      { id: 'flat_desk', cat: 'furniture', baseZ: 25, name: '平直原木书桌', img: './assets/flat_desk.png', width: 145, height: 110 },
+      { id: 'flat_sofa', cat: 'furniture', baseZ: 22, name: '复古暖黄皮沙发', img: './assets/flat_sofa.png', width: 135, height: 115 },
+      { id: 'flat_bookshelf', cat: 'furniture', baseZ: 20, name: '多层立式大书架', img: './assets/flat_bookshelf.png', width: 110, height: 155 },
+      { id: 'flat_bed', cat: 'furniture', baseZ: 18, name: '舒适棉麻双人床', img: './assets/flat_bed.png', width: 155, height: 120 },
+      { id: 'flat_piano', cat: 'furniture', baseZ: 24, name: '复古立式小钢琴', img: './assets/flat_piano.png', width: 130, height: 125 },
 
-      // 🧱 ② 地毯墙面 (Floor Layer)
-      { id: 'stk_rug_boho', cat: 'rugs', baseZ: 10, name: '波西米亚绒毯', img: './assets/stk_rug_boho.png', width: 180, height: 110 },
-      { id: 'stk_wall_shelf', cat: 'rugs', baseZ: 12, name: '挂墙三层木架', img: './assets/stk_wall_shelf.png', width: 90, height: 100 },
+      // 🌿 ③ 垂挂植物与盆栽
+      { id: 'flat_hanging_vines', cat: 'plants', baseZ: 85, name: '天花板垂挂绿萝', img: './assets/flat_hanging_vines.png', width: 160, height: 95 },
+      { id: 'flat_monstera', cat: 'plants', baseZ: 30, name: '陶土盆龟背竹', img: './assets/flat_monstera.png', width: 95, height: 125 },
+      { id: 'flat_tulips', cat: 'plants', baseZ: 55, name: '玻璃瓶粉红郁金香', img: './assets/flat_tulips.png', width: 80, height: 105 },
 
-      // 🛋️ ③ 大件家具 (Main Furniture)
-      { id: 'stk_cozy_bed', cat: 'big_furniture', baseZ: 20, name: '棉麻舒适大床', img: './assets/stk_cozy_bed.png', width: 145, height: 125 },
-      { id: 'stk_study_desk', cat: 'big_furniture', baseZ: 21, name: '原木抽屉书桌', img: './assets/stk_study_desk.png', width: 125, height: 110 },
-      { id: 'stk_sofa', cat: 'big_furniture', baseZ: 25, name: '复古暖黄皮沙发', img: './assets/stk_sofa.png', width: 120, height: 120 },
-      { id: 'stk_bookshelf', cat: 'big_furniture', baseZ: 22, name: '原木多层大书架', img: './assets/stk_bookshelf.png', width: 105, height: 140 },
-      { id: 'stk_piano', cat: 'big_furniture', baseZ: 24, name: '复古立式小钢琴', img: './assets/stk_piano.png', width: 125, height: 125 },
+      // 🐱 ④ 纯平面治愈萌宠 (底部平整，可贴在地面或桌面上)
+      { id: 'flat_cat_orange', cat: 'pets', baseZ: 60, name: '熟睡卷卷橘猫', img: './assets/flat_cat_orange.png', width: 95, height: 75 },
+      { id: 'flat_shiba', cat: 'pets', baseZ: 60, name: '趴窝小柴犬', img: './assets/flat_shiba.png', width: 95, height: 75 },
 
-      // 🪑 ④ 桌椅小件 (Secondary Furniture)
-      { id: 'stk_coffee_table', cat: 'small_furniture', baseZ: 30, name: '暖木小圆桌', img: './assets/stk_coffee_table.png', width: 95, height: 95 },
-      { id: 'stk_pouf', cat: 'small_furniture', baseZ: 28, name: '柔软毛毯懒人垫', img: './assets/stk_pouf.png', width: 95, height: 85 },
-
-      // 🌿 ⑤ 绿植盆栽 (Plants)
-      { id: 'stk_monstera', cat: 'plants', baseZ: 35, name: '陶土盆龟背竹', img: './assets/stk_monstera.png', width: 100, height: 130 },
-      { id: 'stk_tulip', cat: 'plants', baseZ: 55, name: '玻璃瓶粉红郁金香', img: './assets/stk_tulip.png', width: 80, height: 105 },
-      { id: 'stk_succulent_shelf', cat: 'plants', baseZ: 32, name: '阶梯多肉花架', img: './assets/stk_succulent_shelf.png', width: 105, height: 120 },
-
-      // 🐱 ⑥ 治愈萌宠 (Pets)
-      { id: 'stk_cat_orange', cat: 'pets', baseZ: 60, name: '熟睡卷卷橘猫', img: './assets/stk_cat_orange.png', width: 95, height: 85 },
-      { id: 'stk_shiba', cat: 'pets', baseZ: 60, name: '趴窝小柴犬', img: './assets/stk_shiba.png', width: 95, height: 85 },
-      { id: 'stk_corgi', cat: 'pets', baseZ: 60, name: '开心短腿柯基', img: './assets/stk_corgi.png', width: 100, height: 85 },
-      { id: 'stk_ragdoll', cat: 'pets', baseZ: 60, name: '优雅坐姿布偶猫', img: './assets/stk_ragdoll.png', width: 90, height: 105 },
-
-      // ☕ ⑦ 美食微缩 (Props)
-      { id: 'stk_breakfast', cat: 'props', baseZ: 65, name: '热拿铁与吐司托盘', img: './assets/stk_breakfast.png', width: 90, height: 75 },
-      { id: 'stk_croissant', cat: 'props', baseZ: 65, name: '金黄可颂草莓蛋糕', img: './assets/stk_croissant.png', width: 90, height: 80 },
-      { id: 'stk_tea_set', cat: 'props', baseZ: 65, name: '英式陶瓷茶具', img: './assets/stk_tea_set.png', width: 90, height: 80 },
-      { id: 'stk_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/stk_record_player.png', width: 95, height: 90 },
-      { id: 'stk_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/stk_lamp.png', width: 85, height: 110 },
-      { id: 'stk_fireflies', cat: 'props', baseZ: 70, name: '微光流萤玻璃瓶', img: './assets/stk_fireflies.png', width: 80, height: 95 }
+      // ☕ ⑤ 桌面微缩零碎物件 (Top Layer: 摆放在平直桌面上)
+      { id: 'flat_lamp', cat: 'props', baseZ: 55, name: '暖光百褶台灯', img: './assets/flat_lamp.png', width: 85, height: 110 },
+      { id: 'flat_breakfast', cat: 'props', baseZ: 65, name: '热拿铁与吐司托盘', img: './assets/flat_breakfast.png', width: 90, height: 75 },
+      { id: 'flat_record_player', cat: 'props', baseZ: 50, name: '复古黑胶唱机', img: './assets/flat_record_player.png', width: 95, height: 85 },
+      { id: 'flat_books_stack', cat: 'props', baseZ: 65, name: '叠放精装书与眼镜', img: './assets/flat_books_stack.png', width: 85, height: 80 }
     ];
 
-    let customStickers = JSON.parse(localStorage.getItem('my_custom_stickers') || '[]');
+    let customFlatStickers = JSON.parse(localStorage.getItem('my_flat_custom_stickers') || '[]');
 
     /* ==========================================================================
-       3. 动态光影微尘粒子系统
+       3. 核心手帐造景逻辑 (1:1 平面自由排版，无斜角崩坏)
        ========================================================================== */
-    class DustParticleSystem {
-      constructor(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext('2d');
-        this.particles = [];
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-        this.init();
-        this.animate();
-      }
-      resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-      }
-      init() {
-        this.particles = [];
-        for (let i = 0; i < 28; i++) {
-          this.particles.push({
-            x: Math.random() * this.canvas.width,
-            y: Math.random() * this.canvas.height,
-            r: Math.random() * 2 + 0.8,
-            vx: (Math.random() - 0.5) * 0.4,
-            vy: -Math.random() * 0.35 - 0.05
-          });
-        }
-      }
-      animate() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
-        for (let p of this.particles) {
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.y < 0) p.y = this.canvas.height;
-          if (p.x < 0) p.x = this.canvas.width;
-          if (p.x > this.canvas.width) p.x = 0;
-          this.ctx.beginPath();
-          this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          this.ctx.fill();
-        }
-        requestAnimationFrame(() => this.animate());
-      }
-    }
-
-    /* ==========================================================================
-       4. 核心应用控制器 (全屏平移缩放 + 拟真1:1撕贴交互)
-       ========================================================================== */
-    class DioramaApp {
+    class FlatDioramaApp {
       constructor() {
         this.placedStickers = []; // 初始空旷，完全由玩家亲手打造！
         this.activeId = null;
-        this.currentBareRoom = 'room_bare_wood';
         this.currentCategory = 'windows';
-        this.globalZCounter = 100;
+        this.globalZ = 100;
 
         // DOM
-        this.viewport = document.getElementById('worldViewport');
-        this.stage = document.getElementById('roomStage');
-        this.roomBg = document.getElementById('roomBackground');
+        this.viewport = document.getElementById('journalViewport');
+        this.canvas = document.getElementById('journalCanvas');
         this.container = document.getElementById('stickerContainer');
+        this.floor = document.getElementById('floorStrip');
         this.overlay = document.getElementById('selectionOverlay');
         this.selectionBox = document.getElementById('selectionBox');
         this.drawer = document.getElementById('stickerDrawer');
         this.grid = document.getElementById('stickersGrid');
         this.hint = document.getElementById('blankStartHint');
 
-        this.dust = new DustParticleSystem('dustCanvas');
-
         this.init();
       }
 
       init() {
-        this.setBareRoom(this.currentBareRoom);
         this.renderDrawer(this.currentCategory);
         this.bindEvents();
-        this.bindStickerControls();
+        this.bindControls();
       }
 
-      setBareRoom(roomKey) {
-        if (!BARE_ROOMS[roomKey]) return;
-        this.currentBareRoom = roomKey;
-        this.roomBg.style.backgroundImage = `url('${BARE_ROOMS[roomKey].bg}')`;
-        document.getElementById('bareRoomSelect').value = roomKey;
+      setFloor(type) {
+        this.floor.className = 'absolute bottom-0 left-0 right-0 pointer-events-none transition-all duration-300';
+        if (type === 'wood') {
+          this.floor.classList.add('floor-wood-strip', 'h-[22%]');
+        } else if (type === 'tile') {
+          this.floor.classList.add('floor-tile-strip', 'h-[22%]');
+        } else if (type === 'grass') {
+          this.floor.classList.add('floor-grass-strip', 'h-[22%]');
+        } else {
+          this.floor.classList.add('h-0', 'opacity-0');
+        }
         audio.playClick();
       }
 
       renderDrawer(cat) {
         this.currentCategory = cat;
-        const all = [...customStickers, ...STICKER_LIBRARY];
-        const list = cat === 'custom' ? customStickers : all.filter(s => s.cat === cat);
+        const all = [...customFlatStickers, ...FLAT_STICKER_LIBRARY];
+        const list = cat === 'custom' ? customFlatStickers : all.filter(s => s.cat === cat);
 
         if (list.length === 0) {
           this.grid.innerHTML = `
             <div class="col-span-4 sm:col-span-6 py-8 text-center text-xs text-[#8c7866]">
-              暂无贴纸，点击顶部「🔮 AI定制」随心画一张！
+              暂无贴纸，点击顶部「🔮 AI定制」画一张纯 2D 贴纸！
             </div>
           `;
           return;
         }
 
         this.grid.innerHTML = list.map(item => `
-          <div class="sticker-sheet-item rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#decbb8] cursor-pointer" data-id="${item.id}">
+          <div class="sticker-tray-card rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#decbb8] cursor-pointer" data-id="${item.id}">
             <div class="w-full h-14 flex items-center justify-center p-0.5 pointer-events-none">
-              <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain filter drop-shadow(0 2px 5px rgba(0,0,0,0.15))">
+              <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain filter drop-shadow(0 2px 4px rgba(0,0,0,0.12))">
             </div>
             <span class="text-[10px] text-[#735e4b] font-medium tracking-tight mt-1 truncate w-full text-center pointer-events-none">
               ${item.name}
@@ -679,9 +641,8 @@
         `).join('');
       }
 
-      // 添加贴纸至房间
       addSticker(templateId, initialPos = null) {
-        const all = [...customStickers, ...STICKER_LIBRARY];
+        const all = [...customFlatStickers, ...FLAT_STICKER_LIBRARY];
         const tpl = all.find(s => s.id === templateId);
         if (!tpl) return;
 
@@ -692,7 +653,7 @@
         const posX = initialPos ? initialPos.x : (vw / 2 - tpl.width / 2);
         const posY = initialPos ? initialPos.y : (vh / 2 - tpl.height / 2 - 40);
 
-        this.globalZCounter += 1;
+        this.globalZ += 1;
         const instance = {
           uid: 'stk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
           templateId: tpl.id,
@@ -705,7 +666,7 @@
           rotation: 0,
           scale: 1,
           flipped: false,
-          zIndex: tpl.baseZ ? tpl.baseZ : this.globalZCounter
+          zIndex: tpl.baseZ ? tpl.baseZ : this.globalZ
         };
 
         this.placedStickers.push(instance);
@@ -714,8 +675,6 @@
 
         setTimeout(() => audio.playStick(), 60);
         this.updateHint();
-
-        // 放置后自动轻微收缩抽屉，让出大屏视野
         this.collapseDrawer();
       }
 
@@ -724,7 +683,7 @@
         this.placedStickers.forEach(item => {
           const el = document.createElement('div');
           el.id = item.uid;
-          el.className = 'sticker-element';
+          el.className = 'flat-sticker-node';
           el.style.width = item.width + 'px';
           el.style.height = item.height + 'px';
           el.style.left = item.x + 'px';
@@ -745,6 +704,7 @@
         this.updateSelectionBoxPosition();
       }
 
+      // 60fps 丝滑触控与双指捏合
       attachPointerGestures(el, item) {
         let isDragging = false;
         let startX, startY;
@@ -784,6 +744,13 @@
             const deltaY = e.clientY - startY;
             item.x = origX + deltaX;
             item.y = origY + deltaY;
+
+            // 水平地面磁吸对齐 (当家具贴到底部地面附近时，平整对齐地面)
+            const floorTop = window.innerHeight * 0.78;
+            const stickerBottom = item.y + item.height * item.scale;
+            if (Math.abs(stickerBottom - floorTop) < 18) {
+              item.y = floorTop - item.height * item.scale;
+            }
 
             el.style.left = item.x + 'px';
             el.style.top = item.y + 'px';
@@ -852,8 +819,7 @@
         this.overlay.classList.remove('hidden');
       }
 
-      bindStickerControls() {
-        // 1. 翻转
+      bindControls() {
         document.getElementById('pinFlip').addEventListener('pointerdown', (e) => {
           e.stopPropagation();
           const active = this.getActive();
@@ -863,7 +829,6 @@
           audio.playClick();
         });
 
-        // 2. 撕掉丢弃
         document.getElementById('pinDelete').addEventListener('pointerdown', (e) => {
           e.stopPropagation();
           if (!this.activeId) return;
@@ -882,18 +847,16 @@
           }, 150);
         });
 
-        // 3. 层级调整
         document.getElementById('pinLayer').addEventListener('pointerdown', (e) => {
           e.stopPropagation();
           const active = this.getActive();
           if (!active) return;
-          this.globalZCounter += 1;
-          active.zIndex = this.globalZCounter;
+          this.globalZ += 1;
+          active.zIndex = this.globalZ;
           this.renderAll();
           audio.playClick();
         });
 
-        // 4. 复合旋转缩放手柄
         const handle = document.getElementById('pinTransform');
         let isT = false;
         let startAngle = 0;
@@ -964,12 +927,10 @@
       }
 
       bindEvents() {
-        // 裸房框架切换
-        document.getElementById('bareRoomSelect').addEventListener('change', (e) => {
-          this.setBareRoom(e.target.value);
+        document.getElementById('floorSelect').addEventListener('change', (e) => {
+          this.setFloor(e.target.value);
         });
 
-        // 抽屉展开/折叠
         document.getElementById('drawerHeader').addEventListener('click', (e) => {
           if (e.target.closest('.cat-tab')) return;
           if (this.drawer.classList.contains('is-collapsed')) {
@@ -980,7 +941,6 @@
           audio.playClick();
         });
 
-        // 贴纸分类标签切换
         document.querySelectorAll('.cat-tab').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -988,36 +948,32 @@
             document.querySelectorAll('.cat-tab').forEach(b => {
               b.className = 'cat-tab px-2.5 py-1 rounded-full text-xs font-medium bg-white text-[#6d5b4a] border border-[#d8c8b5] transition-all';
             });
-            btn.className = 'cat-tab px-2.5 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white transition-all shadow-xs';
+            btn.className = 'cat-tab px-2.5 py-1 rounded-full text-xs font-semibold bg-[#e76f51] text-white transition-all shadow-xs';
             this.renderDrawer(btn.dataset.cat);
             this.expandDrawer();
           });
         });
 
-        // 点击贴纸册撕下
         this.grid.addEventListener('click', (e) => {
-          const card = e.target.closest('.sticker-sheet-item');
+          const card = e.target.closest('.sticker-tray-card');
           if (card) {
             this.addSticker(card.dataset.id);
           }
         });
 
-        // 点击舞台空白处取消选择
         this.viewport.addEventListener('pointerdown', (e) => {
-          if (e.target === this.viewport || e.target === this.stage || e.target.id === 'roomBackground' || e.target.id === 'dustCanvas') {
+          if (e.target === this.viewport || e.target === this.canvas || e.target.id === 'floorStrip') {
             this.deselectAll();
           }
         });
 
-        // 环境白噪音切换
         document.getElementById('ambientBtn').addEventListener('click', () => {
           audio.cycleAmbience();
         });
 
-        // 清空
         document.getElementById('clearBtn').addEventListener('click', () => {
           if (this.placedStickers.length === 0) return;
-          if (confirm('确定要清空房间吗？将从一张空白裸房重新开始打造！')) {
+          if (confirm('确定要清空吗？将重新面对一张干净的手帐纸！')) {
             this.placedStickers = [];
             this.deselectAll();
             this.renderAll();
@@ -1026,7 +982,6 @@
           }
         });
 
-        // 导出
         document.getElementById('exportBtn').addEventListener('click', () => {
           this.exportImage();
         });
@@ -1036,89 +991,94 @@
         });
       }
 
-      // 高清合成导出
+      // 拍立得 2D 手帐照片高清导出
       exportImage() {
         audio.playClick();
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const scale = 2; // 2x 视网膜高清
+        const scale = 2;
         const canvas = document.createElement('canvas');
         canvas.width = vw * scale;
         canvas.height = vh * scale;
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
 
-        const currentBg = BARE_ROOMS[this.currentBareRoom];
-        const bgImg = new Image();
-        bgImg.crossOrigin = 'anonymous';
+        // 1. 绘制手帐纸张底色
+        ctx.fillStyle = '#faf5ec';
+        ctx.fillRect(0, 0, vw, vh);
 
-        const finish = () => {
-          const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
-          if (sorted.length === 0) {
-            this.showExport(canvas.toDataURL('image/png'));
-            return;
-          }
+        // 2. 绘制网格线
+        ctx.strokeStyle = 'rgba(180, 160, 140, 0.15)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < vw; x += 20) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, vh); ctx.stroke();
+        }
+        for (let y = 0; y < vh; y += 20) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(vw, y); ctx.stroke();
+        }
 
-          let loaded = 0;
-          sorted.forEach(item => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-              ctx.save();
-              ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
-              ctx.rotate((item.rotation * Math.PI) / 180);
-              ctx.scale(item.flipped ? -item.scale : item.scale, item.scale);
-              ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
-              ctx.restore();
+        // 3. 绘制地面
+        const floorType = document.getElementById('floorSelect').value;
+        const floorH = vh * 0.22;
+        const floorY = vh - floorH;
 
-              loaded++;
-              if (loaded === sorted.length) {
-                // 拍立得水印相框
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 10;
-                ctx.strokeRect(5, 5, vw - 10, vh - 10);
-                ctx.font = 'bold 12px sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(`✨ ${currentBg.name} · 我的造景小屋`, 20, vh - 22);
+        if (floorType === 'wood') {
+          const woodGrad = ctx.createLinearGradient(0, floorY, 0, vh);
+          woodGrad.addColorStop(0, '#9b6c42');
+          woodGrad.addColorStop(1, '#8d5e35');
+          ctx.fillStyle = woodGrad;
+          ctx.fillRect(0, floorY, vw, floorH);
+          ctx.strokeStyle = '#633f20';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(vw, floorY); ctx.stroke();
+        } else if (floorType === 'grass') {
+          ctx.fillStyle = '#5b8c5a';
+          ctx.fillRect(0, floorY, vw, floorH);
+          ctx.strokeStyle = '#365935';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(0, floorY); ctx.lineTo(vw, floorY); ctx.stroke();
+        }
 
-                this.showExport(canvas.toDataURL('image/png'));
-              }
-            };
-            img.onerror = () => {
-              loaded++;
-              if (loaded === sorted.length) {
-                this.showExport(canvas.toDataURL('image/png'));
-              }
-            };
-            img.src = item.img;
-          });
-        };
+        // 4. 按层级绘制所有贴纸
+        const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
+        if (sorted.length === 0) {
+          this.showExport(canvas.toDataURL('image/png'));
+          return;
+        }
 
-        bgImg.onload = () => {
-          // 铺满裁剪
-          const imgRatio = bgImg.width / bgImg.height;
-          const screenRatio = vw / vh;
-          let dw, dh, dx, dy;
-          if (screenRatio > imgRatio) {
-            dw = vw;
-            dh = vw / imgRatio;
-            dx = 0;
-            dy = (vh - dh) / 2;
-          } else {
-            dh = vh;
-            dw = vh * imgRatio;
-            dx = (vw - dw) / 2;
-            dy = 0;
-          }
-          ctx.drawImage(bgImg, dx, dy, dw, dh);
-          finish();
-        };
-        bgImg.onerror = () => {
-          ctx.fillStyle = '#1a1614';
-          ctx.fillRect(0, 0, vw, vh);
-          finish();
-        };
-        bgImg.src = currentBg.bg;
+        let loaded = 0;
+        sorted.forEach(item => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            ctx.save();
+            ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+            ctx.rotate((item.rotation * Math.PI) / 180);
+            ctx.scale(item.flipped ? -item.scale : item.scale, item.scale);
+            ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
+            ctx.restore();
+
+            loaded++;
+            if (loaded === sorted.length) {
+              // 手帐白边边框与日付印章
+              ctx.strokeStyle = '#ffffff';
+              ctx.lineWidth = 12;
+              ctx.strokeRect(6, 6, vw - 12, vh - 12);
+              ctx.font = 'bold 12px sans-serif';
+              ctx.fillStyle = '#7a6856';
+              ctx.fillText(`✨ 2D 平面手帐造景 · My Journal Room`, 24, vh - 22);
+
+              this.showExport(canvas.toDataURL('image/png'));
+            }
+          };
+          img.onerror = () => {
+            loaded++;
+            if (loaded === sorted.length) {
+              this.showExport(canvas.toDataURL('image/png'));
+            }
+          };
+          img.src = item.img;
+        });
       }
 
       showExport(dataUrl) {
@@ -1129,9 +1089,9 @@
     }
 
     /* ==========================================================================
-       5. 🔮 Grok AI 贴纸工坊
+       4. 🔮 Grok AI 2D 平面贴纸工坊 (注入纯正视图提示词)
        ========================================================================== */
-    class AiWorkshop {
+    class FlatAiWorkshop {
       constructor(app) {
         this.app = app;
         this.apiKey = 'sk-Tkh8xl7XqIlbiGje1wI9g6HJBnCSZqFBm2W9ym5Q';
@@ -1174,11 +1134,12 @@
 
         this.btn.disabled = true;
         this.spinner.classList.remove('hidden');
-        this.btnText.innerText = 'Grok 正在绘制中...';
+        this.btnText.innerText = 'Grok 正在绘制 2D 正视角...';
         this.status.classList.remove('hidden');
         audio.playPeel();
 
-        const fullPrompt = `Die-cut sticker of ${val}, cute cozy anime cartoon style, thick white sticker border outline, solid pure white background, 2d sticker design`;
+        // 强约束：纯 2D 平视立面
+        const fullPrompt = `Die-cut sticker of ${val}, pure 2D flat front elevation view, straight front facing, cute flat anime cartoon sticker, thick white sticker border outline, solid pure white background, flat 2d scrapbooking design`;
 
         try {
           const resp = await fetch('https://img.pipiwangcom.com/v1/images/generations', {
@@ -1206,7 +1167,7 @@
           const transparentPng = await this.removeWhite(rawUrl);
 
           const newSticker = {
-            id: 'custom_' + Date.now(),
+            id: 'flat_custom_' + Date.now(),
             cat: 'custom',
             name: val.slice(0, 8),
             img: transparentPng,
@@ -1214,8 +1175,8 @@
             height: 95
           };
 
-          customStickers.unshift(newSticker);
-          localStorage.setItem('my_custom_stickers', JSON.stringify(customStickers));
+          customFlatStickers.unshift(newSticker);
+          localStorage.setItem('my_flat_custom_stickers', JSON.stringify(customFlatStickers));
 
           this.modal.classList.add('hidden');
           this.input.value = '';
@@ -1223,13 +1184,13 @@
           this.app.addSticker(newSticker.id);
           audio.playStick();
 
-          alert('🎉 你的专属贴纸已绘制完成，已贴入房间！');
+          alert('🎉 你的纯 2D 平面贴纸已绘制完成，已贴入房间！');
         } catch (e) {
           alert('绘制失败，请重试：' + (e.message || e));
         } finally {
           this.btn.disabled = false;
           this.spinner.classList.add('hidden');
-          this.btnText.innerText = '✨ 立即绘制专属贴纸';
+          this.btnText.innerText = '✨ 绘制纯 2D 平面贴纸';
           this.status.classList.add('hidden');
         }
       }
@@ -1297,8 +1258,8 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      window.app = new DioramaApp();
-      window.aiWorkshop = new AiWorkshop(window.app);
+      window.app = new FlatDioramaApp();
+      window.aiWorkshop = new FlatAiWorkshop(window.app);
     });
   </script>
 </body>
