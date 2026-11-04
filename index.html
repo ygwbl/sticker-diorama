@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>造景贴纸小憩 · Sticker Diorama</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 移动端防误触与无滚动防抖 */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
+    body {
+      touch-action: pan-x pan-y;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background-color: #f3ece2;
+    }
+    .canvas-container {
+      touch-action: none;
+    }
+    /* 贴纸拟真边缘投影与反光 */
+    .sticker-item {
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.16)) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+      transition: filter 0.15s ease, transform 0.15s ease;
+      transform-origin: center center;
+    }
+    .sticker-item:active, .sticker-item.dragging {
+      filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.28)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
+      transform: scale(1.06);
+    }
+    /* 托盘贴纸动画 */
+    .tray-sticker {
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .tray-sticker:hover {
+      transform: translateY(-3px) scale(1.03);
+    }
+    .tray-sticker:active {
+      transform: scale(0.92);
+    }
+    /* 选中框 */
+    .selection-ring {
+      border: 2px dashed #e27d60;
+      background: rgba(226, 125, 96, 0.06);
+    }
+    /* 隐藏滚动条 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-1 sm:p-4 text-[#4a3f35]">
+
+  <!-- 移动端外壳容器 (以经典手机比例居中呈现) -->
+  <div class="w-full max-w-[430px] flex flex-col h-[96vh] max-h-[890px] bg-[#faf6f0] rounded-3xl shadow-2xl border border-[#e5d8c6] overflow-hidden">
+    
+    <!-- 顶部状态栏与快捷工具栏 -->
+    <header class="px-3.5 py-2.5 bg-[#f2e9dc] border-b border-[#e2d5c3] flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🪴</span>
+        <div>
+          <h1 class="font-bold text-sm tracking-tight text-[#4a3a2a]">造景贴纸小憩</h1>
+          <p class="text-[10px] text-[#8c7a68]">Grok AI 精绘微缩场景</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-1.5">
+        <!-- 音效开关 -->
+        <button id="soundToggleBtn" class="p-2 rounded-xl bg-white/80 border border-[#dfd2be] text-[#6d5a47] active:scale-95 transition-all text-xs" title="音效开关">
+          🔊
+        </button>
+        <!-- 灵感预设 -->
+        <button id="presetBtn" class="px-2.5 py-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#6d5a47] active:scale-95 transition-all text-xs font-medium flex items-center gap-1" title="一键铺满预设灵感">
+          <span>💡</span>灵感
+        </button>
+        <!-- 清空重置 -->
+        <button id="clearBtn" class="px-2.5 py-1.5 rounded-xl bg-white/80 border border-[#dfd2be] text-[#b34a4a] active:scale-95 transition-all text-xs font-medium" title="清空画板">
+          清空
+        </button>
+        <!-- 导出壁纸 -->
+        <button id="exportBtn" class="px-3 py-1.5 rounded-xl bg-[#d97d54] text-white shadow-sm active:scale-95 transition-all text-xs font-medium flex items-center gap-1">
+          <span>📸</span>保存
+        </button>
+      </div>
+    </header>
+
+    <!-- 场景切换胶囊栏 -->
+    <div class="px-3 py-2 bg-[#f7f2ea] flex items-center justify-between border-b border-[#ebdccb] shrink-0">
+      <span class="text-[11px] font-medium text-[#7d6b58] shrink-0">切换房间：</span>
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <button data-scene="sunset" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-[#d97d54] text-white shadow-xs">
+          🌅 日落书房
+        </button>
+        <button data-scene="greenhouse" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]">
+          🌿 阳光温室
+        </button>
+        <button data-scene="night" class="scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]">
+          🌙 治愈猫窝
+        </button>
+      </div>
+    </div>
+
+    <!-- 核心造景画板区 -->
+    <main class="relative flex-1 bg-[#eae0d2] overflow-hidden flex items-center justify-center p-2">
+      <!-- 场景底板 (支持保存截屏) -->
+      <div id="sceneStage" class="canvas-container relative w-full h-full max-h-[460px] rounded-2xl shadow-inner overflow-hidden border-2 border-[#dfd0bd] select-none bg-cover bg-center">
+        <!-- 场景背景图层 (优先使用 Grok 渲染的背景图) -->
+        <div id="sceneBackground" class="absolute inset-0 pointer-events-none transition-all duration-500 bg-cover bg-center">
+        </div>
+
+        <!-- 贴纸活动容器 -->
+        <div id="stickerCanvas" class="absolute inset-0 overflow-hidden">
+          <!-- 放置的贴纸将动态插入这里 -->
+        </div>
+
+        <!-- 空状态操作指引 -->
+        <div id="emptyHint" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-6 transition-opacity duration-300">
+          <div class="w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center text-2xl shadow-sm mb-2 animate-bounce">
+            👇
+          </div>
+          <p class="text-xs font-medium text-[#6e5843] bg-white/80 backdrop-blur-xs px-3 py-1.5 rounded-full shadow-sm">
+            点击下方贴纸撕下，或拖拽摆放你的小屋
+          </p>
+        </div>
+
+        <!-- 当前选中贴纸的快捷悬浮工具栏 (移动端拇指操作) -->
+        <div id="floatingToolbar" class="absolute bottom-2 left-1/2 -translate-x-1/2 hidden bg-[#3b322a]/92 backdrop-blur-md text-white rounded-2xl px-3 py-1.5 shadow-2xl flex items-center gap-2.5 z-50 text-xs border border-white/20">
+          <button id="actFlip" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
+            <span>🪞</span>翻转
+          </button>
+          <div class="w-[1px] h-4 bg-white/20"></div>
+          <button id="actLayerUp" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
+            <span>⬆️</span>上移
+          </button>
+          <button id="actLayerDown" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
+            <span>⬇️</span>下移
+          </button>
+          <div class="w-[1px] h-4 bg-white/20"></div>
+          <button id="actRotateLeft" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
+            <span>↺</span>-15°
+          </button>
+          <button id="actRotateRight" class="p-1 hover:text-[#f8b28f] active:scale-90 flex flex-col items-center text-[10px]">
+            <span>↻</span>+15°
+          </button>
+          <div class="w-[1px] h-4 bg-white/20"></div>
+          <button id="actDelete" class="p-1 text-red-300 hover:text-red-400 active:scale-90 flex flex-col items-center text-[10px]">
+            <span>🗑️</span>撕掉
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- 底部贴纸册抽屉 -->
+    <footer class="bg-[#f2e9dc] border-t border-[#dfd2bf] flex flex-col shrink-0 max-h-[310px]">
+      
+      <!-- 分类标签 -->
+      <div class="flex items-center gap-1 px-3 pt-2 pb-1 overflow-x-auto no-scrollbar border-b border-[#e8dbca]">
+        <button data-cat="all" class="cat-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white shrink-0 transition-all shadow-xs">
+          全部 (14)
+        </button>
+        <button data-cat="furniture" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🛋️ 家具
+        </button>
+        <button data-cat="plants" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🌿 绿植
+        </button>
+        <button data-cat="pets" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          🐱 萌宠
+        </button>
+        <button data-cat="deco" class="cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all">
+          ☕ 微缩
+        </button>
+      </div>
+
+      <!-- 贴纸列表格 (仿真撕纸底衬) -->
+      <div id="stickersTray" class="p-2.5 grid grid-cols-4 gap-2 overflow-y-auto max-h-[220px] no-scrollbar">
+        <!-- 动态渲染贴纸卡片 -->
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- 导出海报模态框 -->
+  <div id="exportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-sm w-full flex flex-col items-center gap-4 border border-[#e5d8c7] shadow-2xl">
+      <div class="text-center">
+        <h3 class="font-bold text-base text-[#4a3b2b]">🎉 你的微缩造景已生成！</h3>
+        <p class="text-xs text-[#826f5d] mt-1">长按保存图片或点击下方下载</p>
+      </div>
+      <div class="w-full rounded-2xl overflow-hidden border-2 border-[#dfd0bd] shadow-md bg-white">
+        <img id="exportPreviewImg" src="" alt="Diorama Export" class="w-full h-auto block">
+      </div>
+      <div class="flex items-center gap-2 w-full">
+        <button id="closeModalBtn" class="flex-1 py-2 rounded-xl bg-white border border-[#d8c8b5] text-xs font-medium text-[#6f5e4d]">
+          返回继续贴
+        </button>
+        <a id="downloadLink" download="my_cozy_room.png" class="flex-1 py-2 text-center rounded-xl bg-[#d97d54] text-white text-xs font-medium shadow-sm">
+          📥 下载到手机
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* 1. Web Audio API 拟真撕贴 ASMR 音效 */
+    class SoundEngine {
+      constructor() {
+        this.enabled = true;
+        this.ctx = null;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+      playPeel() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const bufferSize = this.ctx.sampleRate * 0.12;
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.4));
+          }
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(1400, this.ctx.currentTime);
+          filter.frequency.exponentialRampToValueAtTime(3200, this.ctx.currentTime + 0.1);
+          filter.Q.setValueAtTime(3, this.ctx.currentTime);
+
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          noise.start();
+
+          if (navigator.vibrate) navigator.vibrate(12);
+        } catch (e) {}
+      }
+      playStick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(380, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+
+          gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.09);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.09);
+
+          if (navigator.vibrate) navigator.vibrate([15, 20, 10]);
+        } catch (e) {}
+      }
+      playDelete() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.14);
+
+          gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.14);
+        } catch (e) {}
+      }
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.03);
+          if (navigator.vibrate) navigator.vibrate(8);
+        } catch (e) {}
+      }
+    }
+    const sound = new SoundEngine();
+
+    /* 2. 贴纸库定义 (优先加载 assets/ 目录下的 Grok 精绘透明贴纸) */
+    const STICKER_LIBRARY = [
+      // 家具
+      { id: 'stk_sofa', cat: 'furniture', name: '复古暖黄单人沙发', img: './assets/stk_sofa.png', width: 110, height: 110 },
+      { id: 'stk_bookshelf', cat: 'furniture', name: '原木多层书架', img: './assets/stk_bookshelf.png', width: 100, height: 120 },
+      { id: 'stk_coffee_table', cat: 'furniture', name: '暖木小圆桌', img: './assets/stk_coffee_table.png', width: 85, height: 85 },
+      
+      // 绿植
+      { id: 'stk_monstera', cat: 'plants', name: '陶土盆龟背竹', img: './assets/stk_monstera.png', width: 90, height: 115 },
+      { id: 'stk_tulip', cat: 'plants', name: '玻璃瓶粉红郁金香', img: './assets/stk_tulip.png', width: 75, height: 95 },
+
+      // 萌宠
+      { id: 'stk_cat_orange', cat: 'pets', name: '熟睡卷卷橘猫', img: './assets/stk_cat_orange.png', width: 85, height: 80 },
+      { id: 'stk_shiba', cat: 'pets', name: '趴窝小柴犬', img: './assets/stk_shiba.png', width: 85, height: 75 },
+
+      // 微缩杂物
+      { id: 'stk_record_player', cat: 'deco', name: '复古黑胶唱机', img: './assets/stk_record_player.png', width: 85, height: 80 },
+      { id: 'stk_lamp', cat: 'deco', name: '暖光百褶台灯', img: './assets/stk_lamp.png', width: 75, height: 95 },
+      { id: 'stk_breakfast', cat: 'deco', name: '热拿铁与厚吐司', img: './assets/stk_breakfast.png', width: 80, height: 65 }
+    ];
+
+    /* 3. 场景背景 (Grok 精绘原画) */
+    const SCENES = {
+      sunset: {
+        name: '日落书房',
+        bg: './assets/bg_sunset.jpg',
+        fallbackGrad: 'linear-gradient(to bottom, #f3e5d0, #deb896)'
+      },
+      greenhouse: {
+        name: '阳光温室',
+        bg: './assets/bg_greenhouse.jpg',
+        fallbackGrad: 'linear-gradient(to bottom, #e3ede3, #b7ceb9)'
+      },
+      night: {
+        name: '治愈猫窝',
+        bg: './assets/bg_night.jpg',
+        fallbackGrad: 'linear-gradient(to bottom, #2b2d42, #4a4e69)'
+      }
+    };
+
+    /* 4. 应用主逻辑 */
+    class DioramaApp {
+      constructor() {
+        this.placedStickers = [];
+        this.activeId = null;
+        this.currentScene = 'sunset';
+        this.currentCategory = 'all';
+        this.highestZ = 10;
+
+        this.stage = document.getElementById('sceneStage');
+        this.canvas = document.getElementById('stickerCanvas');
+        this.bgContainer = document.getElementById('sceneBackground');
+        this.trayContainer = document.getElementById('stickersTray');
+        this.toolbar = document.getElementById('floatingToolbar');
+        this.emptyHint = document.getElementById('emptyHint');
+
+        this.init();
+      }
+
+      init() {
+        this.renderScene(this.currentScene);
+        this.renderTray(this.currentCategory);
+        this.bindEvents();
+        setTimeout(() => this.loadPreset(false), 300);
+      }
+
+      renderScene(sceneKey) {
+        if (!SCENES[sceneKey]) return;
+        this.currentScene = sceneKey;
+        const sc = SCENES[sceneKey];
+
+        // 优先加载 Grok 渲染的背景大图
+        this.bgContainer.style.backgroundImage = `url('${sc.bg}')`;
+        this.bgContainer.style.backgroundSize = 'cover';
+        this.bgContainer.style.backgroundPosition = 'center';
+
+        document.querySelectorAll('.scene-tab').forEach(btn => {
+          if (btn.dataset.scene === sceneKey) {
+            btn.className = 'scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-[#d97d54] text-white shadow-xs';
+          } else {
+            btn.className = 'scene-tab px-2.5 py-1 rounded-full text-xs font-medium transition-all bg-white text-[#6b5847] border border-[#e2d5c3]';
+          }
+        });
+        sound.playClick();
+      }
+
+      renderTray(cat) {
+        this.currentCategory = cat;
+        const list = cat === 'all' 
+          ? STICKER_LIBRARY 
+          : STICKER_LIBRARY.filter(item => item.cat === cat);
+
+        this.trayContainer.innerHTML = list.map(item => `
+          <div class="tray-sticker relative bg-white/95 rounded-2xl p-1.5 flex flex-col items-center justify-between border border-[#e5d8c6] shadow-xs cursor-pointer active:scale-95" data-id="${item.id}">
+            <div class="w-full h-14 flex items-center justify-center p-0.5 pointer-events-none">
+              <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain pointer-events-none filter drop-shadow(0 2px 4px rgba(0,0,0,0.12))">
+            </div>
+            <span class="text-[10px] text-[#735e4b] font-medium tracking-tight mt-1 truncate w-full text-center pointer-events-none">
+              ${item.name}
+            </span>
+          </div>
+        `).join('');
+      }
+
+      addSticker(templateId, initialPos = null) {
+        const tpl = STICKER_LIBRARY.find(s => s.id === templateId);
+        if (!tpl) return;
+
+        sound.playPeel();
+
+        const rect = this.canvas.getBoundingClientRect();
+        const posX = initialPos ? initialPos.x : (rect.width / 2 - tpl.width / 2);
+        const posY = initialPos ? initialPos.y : (rect.height / 2 - tpl.height / 2);
+
+        this.highestZ += 1;
+        const instance = {
+          uid: 'stk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          templateId: tpl.id,
+          name: tpl.name,
+          img: tpl.img,
+          x: Math.max(10, Math.min(rect.width - tpl.width, posX)),
+          y: Math.max(10, Math.min(rect.height - tpl.height, posY)),
+          width: tpl.width,
+          height: tpl.height,
+          rotation: 0,
+          scale: 1,
+          flipped: false,
+          zIndex: this.highestZ
+        };
+
+        this.placedStickers.push(instance);
+        this.renderCanvasStickers();
+        this.selectSticker(instance.uid);
+
+        setTimeout(() => sound.playStick(), 80);
+        this.updateEmptyHint();
+      }
+
+      renderCanvasStickers() {
+        this.canvas.innerHTML = '';
+
+        this.placedStickers.forEach(item => {
+          const el = document.createElement('div');
+          el.id = item.uid;
+          el.className = 'sticker-item absolute cursor-grab active:cursor-grabbing select-none';
+          el.style.width = item.width + 'px';
+          el.style.height = item.height + 'px';
+          el.style.left = item.x + 'px';
+          el.style.top = item.y + 'px';
+          el.style.zIndex = item.zIndex;
+
+          const isSelected = this.activeId === item.uid;
+          const transformStr = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
+          el.style.transform = transformStr;
+
+          el.innerHTML = `
+            <div class="w-full h-full relative pointer-events-none flex items-center justify-center">
+              <img src="${item.img}" class="w-full h-full object-contain pointer-events-none filter drop-shadow(0 2px 5px rgba(0,0,0,0.18))">
+            </div>
+            ${isSelected ? `
+              <div class="selection-ring absolute -inset-2 rounded-xl pointer-events-none"></div>
+            ` : ''}
+          `;
+
+          this.attachDragEvents(el, item);
+          this.canvas.appendChild(el);
+        });
+
+        this.updateToolbarPosition();
+      }
+
+      attachDragEvents(el, item) {
+        let isDragging = false;
+        let startX, startY;
+        let origX, origY;
+
+        const onPointerDown = (e) => {
+          e.stopPropagation();
+          this.selectSticker(item.uid);
+          sound.playPeel();
+
+          isDragging = true;
+          el.classList.add('dragging');
+
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+          startX = clientX;
+          startY = clientY;
+          origX = item.x;
+          origY = item.y;
+
+          const onPointerMove = (moveEvt) => {
+            if (!isDragging) return;
+            moveEvt.preventDefault();
+
+            const curX = moveEvt.touches ? moveEvt.touches[0].clientX : moveEvt.clientX;
+            const curY = moveEvt.touches ? moveEvt.touches[0].clientY : moveEvt.clientY;
+
+            const deltaX = curX - startX;
+            const deltaY = curY - startY;
+
+            item.x = origX + deltaX;
+            item.y = origY + deltaY;
+
+            el.style.left = item.x + 'px';
+            el.style.top = item.y + 'px';
+
+            this.updateToolbarPosition();
+          };
+
+          const onPointerUp = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            el.classList.remove('dragging');
+            sound.playStick();
+
+            window.removeEventListener('mousemove', onPointerMove);
+            window.removeEventListener('mouseup', onPointerUp);
+            window.removeEventListener('touchmove', onPointerMove);
+            window.removeEventListener('touchend', onPointerUp);
+          };
+
+          window.addEventListener('mousemove', onPointerMove, { passive: false });
+          window.addEventListener('mouseup', onPointerUp);
+          window.addEventListener('touchmove', onPointerMove, { passive: false });
+          window.addEventListener('touchend', onPointerUp);
+        };
+
+        el.addEventListener('mousedown', onPointerDown);
+        el.addEventListener('touchstart', onPointerDown, { passive: true });
+      }
+
+      selectSticker(uid) {
+        this.activeId = uid;
+        this.renderCanvasStickers();
+        this.toolbar.classList.remove('hidden');
+      }
+
+      deselectAll() {
+        this.activeId = null;
+        this.renderCanvasStickers();
+        this.toolbar.classList.add('hidden');
+      }
+
+      updateToolbarPosition() {
+        if (!this.activeId) {
+          this.toolbar.classList.add('hidden');
+          return;
+        }
+        this.toolbar.classList.remove('hidden');
+      }
+
+      getActive() {
+        return this.placedStickers.find(s => s.uid === this.activeId);
+      }
+
+      loadPreset(clearOld = true) {
+        if (clearOld) {
+          this.placedStickers = [];
+        }
+        const rect = this.canvas.getBoundingClientRect();
+        const cw = rect.width || 380;
+        const ch = rect.height || 360;
+
+        this.addSticker('stk_sofa', { x: cw * 0.18, y: ch * 0.40 });
+        this.addSticker('stk_bookshelf', { x: cw * 0.62, y: ch * 0.22 });
+        this.addSticker('stk_monstera', { x: cw * 0.05, y: ch * 0.35 });
+        this.addSticker('stk_cat_orange', { x: cw * 0.38, y: ch * 0.55 });
+        this.addSticker('stk_coffee_table', { x: cw * 0.45, y: ch * 0.42 });
+
+        this.deselectAll();
+      }
+
+      updateEmptyHint() {
+        if (this.placedStickers.length === 0) {
+          this.emptyHint.style.opacity = '1';
+        } else {
+          this.emptyHint.style.opacity = '0';
+        }
+      }
+
+      bindEvents() {
+        this.trayContainer.addEventListener('click', (e) => {
+          const card = e.target.closest('.tray-sticker');
+          if (card) {
+            this.addSticker(card.dataset.id);
+          }
+        });
+
+        document.querySelectorAll('.cat-pill').forEach(btn => {
+          btn.addEventListener('click', () => {
+            sound.playClick();
+            document.querySelectorAll('.cat-pill').forEach(b => {
+              b.className = 'cat-pill px-3 py-1 rounded-full text-xs font-medium bg-white/80 text-[#6d5b4a] shrink-0 border border-[#dfd2be] transition-all';
+            });
+            btn.className = 'cat-pill px-3 py-1 rounded-full text-xs font-semibold bg-[#d97d54] text-white shrink-0 transition-all shadow-xs';
+            this.renderTray(btn.dataset.cat);
+          });
+        });
+
+        document.querySelectorAll('.scene-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+            this.renderScene(btn.dataset.scene);
+          });
+        });
+
+        this.stage.addEventListener('pointerdown', (e) => {
+          if (e.target === this.stage || e.target === this.canvas || e.target.closest('#sceneBackground')) {
+            this.deselectAll();
+          }
+        });
+
+        const soundBtn = document.getElementById('soundToggleBtn');
+        soundBtn.addEventListener('click', () => {
+          sound.enabled = !sound.enabled;
+          soundBtn.innerText = sound.enabled ? '🔊' : '🔇';
+          if (sound.enabled) sound.playClick();
+        });
+
+        document.getElementById('presetBtn').addEventListener('click', () => {
+          this.loadPreset(true);
+          sound.playStick();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+          if (this.placedStickers.length === 0) return;
+          if (confirm('确定要撕掉房间里所有的贴纸吗？')) {
+            this.placedStickers = [];
+            this.deselectAll();
+            this.updateEmptyHint();
+            sound.playDelete();
+          }
+        });
+
+        document.getElementById('actFlip').addEventListener('click', () => {
+          const active = this.getActive();
+          if (!active) return;
+          active.flipped = !active.flipped;
+          this.renderCanvasStickers();
+          sound.playClick();
+        });
+
+        document.getElementById('actLayerUp').addEventListener('click', () => {
+          const active = this.getActive();
+          if (!active) return;
+          this.highestZ += 1;
+          active.zIndex = this.highestZ;
+          this.renderCanvasStickers();
+          sound.playClick();
+        });
+
+        document.getElementById('actLayerDown').addEventListener('click', () => {
+          const active = this.getActive();
+          if (!active) return;
+          active.zIndex = Math.max(1, active.zIndex - 1);
+          this.renderCanvasStickers();
+          sound.playClick();
+        });
+
+        document.getElementById('actRotateLeft').addEventListener('click', () => {
+          const active = this.getActive();
+          if (!active) return;
+          active.rotation = (active.rotation - 15) % 360;
+          this.renderCanvasStickers();
+          sound.playClick();
+        });
+
+        document.getElementById('actRotateRight').addEventListener('click', () => {
+          const active = this.getActive();
+          if (!active) return;
+          active.rotation = (active.rotation + 15) % 360;
+          this.renderCanvasStickers();
+          sound.playClick();
+        });
+
+        document.getElementById('actDelete').addEventListener('click', () => {
+          if (!this.activeId) return;
+          this.placedStickers = this.placedStickers.filter(s => s.uid !== this.activeId);
+          this.deselectAll();
+          this.updateEmptyHint();
+          sound.playDelete();
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+          this.exportImage();
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+          document.getElementById('exportModal').classList.add('hidden');
+        });
+      }
+
+      exportImage() {
+        sound.playClick();
+        const stageRect = this.stage.getBoundingClientRect();
+        const scaleFactor = 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = stageRect.width * scaleFactor;
+        canvas.height = stageRect.height * scaleFactor;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scaleFactor, scaleFactor);
+
+        const sc = SCENES[this.currentScene];
+        const bgImg = new Image();
+        bgImg.crossOrigin = "anonymous";
+        bgImg.onload = () => {
+          ctx.drawImage(bgImg, 0, 0, stageRect.width, stageRect.height);
+          this.drawStickersToCanvas(ctx, stageRect, canvas);
+        };
+        bgImg.onerror = () => {
+          // 降级使用暖色背景
+          ctx.fillStyle = '#f3e5d0';
+          ctx.fillRect(0, 0, stageRect.width, stageRect.height);
+          this.drawStickersToCanvas(ctx, stageRect, canvas);
+        };
+        bgImg.src = sc.bg;
+      }
+
+      drawStickersToCanvas(ctx, stageRect, canvas) {
+        const sorted = [...this.placedStickers].sort((a, b) => a.zIndex - b.zIndex);
+        if (sorted.length === 0) {
+          this.showExportResult(canvas.toDataURL('image/png'));
+          return;
+        }
+
+        let loadedCount = 0;
+        sorted.forEach(item => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            ctx.save();
+            ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+            ctx.rotate((item.rotation * Math.PI) / 180);
+            ctx.scale(item.flipped ? -item.scale : item.scale, item.scale);
+            ctx.drawImage(img, -item.width / 2, -item.height / 2, item.width, item.height);
+            ctx.restore();
+
+            loadedCount++;
+            if (loadedCount === sorted.length) {
+              ctx.strokeStyle = '#dfd0bd';
+              ctx.lineWidth = 4;
+              ctx.strokeRect(2, 2, stageRect.width - 4, stageRect.height - 4);
+              this.showExportResult(canvas.toDataURL('image/png'));
+            }
+          };
+          img.onerror = () => {
+            loadedCount++;
+            if (loadedCount === sorted.length) {
+              this.showExportResult(canvas.toDataURL('image/png'));
+            }
+          };
+          img.src = item.img;
+        });
+      }
+
+      showExportResult(dataUrl) {
+        document.getElementById('exportPreviewImg').src = dataUrl;
+        document.getElementById('downloadLink').href = dataUrl;
+        document.getElementById('exportModal').classList.remove('hidden');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.app = new DioramaApp();
+    });
+  </script>
+</body>
+</html>
