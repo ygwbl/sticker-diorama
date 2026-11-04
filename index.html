@@ -288,6 +288,10 @@
 
     <!-- 右侧：功能按钮群 -->
     <div class="flex items-center gap-1 bg-stone-900/80 backdrop-blur-md p-1 rounded-full border border-stone-700 shadow-md">
+      <!-- 📖 DeepSeek AI 治愈手帐日记 -->
+      <button id="openDiaryBtn" class="w-7 h-7 rounded-full bg-amber-600/90 text-white text-xs font-bold hover:bg-amber-500 active:scale-95 flex items-center justify-center shadow" title="AI 提笔写手帐日记">
+        📖
+      </button>
       <!-- 房间风格切换 (自由模式专属) -->
       <button id="themePickerBtn" class="w-7 h-7 rounded-full bg-stone-800 text-stone-200 text-xs font-bold hover:bg-stone-700 active:scale-95 flex items-center justify-center hidden" title="切换房间装潢">
         🎨
@@ -364,7 +368,6 @@
       </div>
 
       <!-- 6. 拟真环境灯光与光影层 -->
-      <!-- 百褶台灯柔光锥 -->
       <div id="lampGlowOverlay" class="absolute inset-0 bg-radial from-amber-200/35 via-amber-400/10 to-transparent pointer-events-none hidden transition-opacity duration-500 z-30"></div>
       
       <!-- 7. 选中物体编辑手柄框 -->
@@ -433,6 +436,38 @@
       <!-- 动态填充当前分类贴纸 -->
     </div>
   </footer>
+
+  <!-- 📖 DeepSeek AI 治愈手帐日记弹窗 -->
+  <div id="aiDiaryModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-[#fcf8f0] rounded-3xl p-5 max-w-xs w-full flex flex-col gap-3.5 border border-[#dfcca8] shadow-2xl relative">
+      <button id="closeDiaryBtn" class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">✕</button>
+      
+      <div class="flex items-center gap-2 border-b border-[#ebdcc7] pb-2">
+        <span class="text-2xl">📖</span>
+        <div>
+          <h3 class="font-black text-sm text-[#4a3b2b]" id="diaryCardTitle">正在品读你的小屋...</h3>
+          <p class="text-[10px] text-[#8a725e]" id="diaryCardDate">2026.11.04 · 温暖微风 ☕</p>
+        </div>
+      </div>
+
+      <!-- 牛皮纸质感手帐页面 -->
+      <div class="bg-[#f5ede1] rounded-2xl p-3.5 border border-[#e8d7c2] shadow-inner flex flex-col gap-2 relative overflow-hidden">
+        <div class="absolute -right-2 -bottom-2 text-4xl opacity-10 pointer-events-none">✨</div>
+        <p id="diaryCardContent" class="text-xs leading-relaxed text-[#5c4735] font-serif min-h-[60px] flex items-center">
+          <span class="animate-pulse">DeepSeek 正在细细品味房间里的每一处光景，马上为您提笔...</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 w-full">
+        <button id="stampToPolaroidBtn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold shadow-md active:scale-95 flex items-center justify-center gap-1">
+          <span>🖨️</span><span>印入拍立得相框</span>
+        </button>
+        <button id="regenDiaryBtn" class="py-2.5 px-3 rounded-xl bg-white border border-[#d8c8b5] text-[#6d5b4a] text-xs font-bold active:scale-95" title="重新提笔生成">
+          🔄
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- 🎁 拟真金箔撕拉盲袋弹窗 -->
   <div id="blindBagModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
@@ -507,16 +542,16 @@
     </div>
   </div>
 
-  <!-- 🔮 Grok AI 贴纸生成弹窗 -->
+  <!-- 🔮 Grok + DeepSeek 智能贴纸生成弹窗 -->
   <div id="aiModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-5 max-w-xs w-full flex flex-col gap-3 border border-[#e5d8c7] shadow-2xl relative">
       <button id="closeAiBtn" class="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold">✕</button>
       <div>
         <div class="flex items-center gap-1.5">
           <span class="text-xl">🔮</span>
-          <h3 class="font-extrabold text-sm text-[#4a3b2b]">Grok AI 2D 平面贴纸工坊</h3>
+          <h3 class="font-extrabold text-sm text-[#4a3b2b]">AI 双引擎 2D 模切贴纸工坊</h3>
         </div>
-        <p class="text-[11px] text-[#826f5d] mt-0.5">输入想要的物品，AI 自动生成带白边模切的平面贴纸！</p>
+        <p class="text-[11px] text-[#826f5d] mt-0.5">DeepSeek 扩写 2D 提示词 + Grok 绘制纯平面模切贴纸！</p>
       </div>
       <div class="flex flex-col gap-2">
         <input id="aiInput" type="text" placeholder="如：日系复古三层餐边柜、抹茶蛋糕..." class="w-full px-3 py-2 rounded-xl border border-[#d8c8b5] bg-white text-xs outline-none focus:ring-2 focus:ring-[#e76f51] text-[#4a3b2b]">
@@ -525,7 +560,7 @@
           <span id="aiBtnText">✨ 绘制 2D 平面贴纸</span>
         </button>
       </div>
-      <div id="aiStatus" class="text-[10px] text-center text-[#8d7966] hidden">Grok 正在绘制并自动抠图，约 10 秒...</div>
+      <div id="aiStatus" class="text-[10px] text-center text-[#8d7966] hidden">DeepSeek 正在优化提示词并由 Grok 绘制抠图中...</div>
     </div>
   </div>
 
@@ -557,7 +592,7 @@
     </div>
   </div>
 
-  <!-- 📸 拍立得手帐照片预览导出弹窗 -->
+  <!-- 📸 拍立得手帐照片预览导出弹窗 (带 DeepSeek 手记印章) -->
   <div id="exportModal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-[#faf6f0] rounded-3xl p-4 max-w-xs w-full flex flex-col items-center gap-3 border border-[#e5d8c7] shadow-2xl">
       <div class="text-center">
@@ -569,9 +604,14 @@
         <div class="w-full rounded-xl overflow-hidden border border-stone-300">
           <img id="exportPreview" src="" alt="Polaroid View" class="w-full h-auto block">
         </div>
-        <div class="w-full flex items-center justify-between px-1 text-[10px] text-stone-500 font-serif">
-          <span id="exportDateText">2026.11.04</span>
-          <span>手帐物语 · 治愈一隅 ☕✨</span>
+        <div class="w-full flex flex-col gap-1 px-1 text-[10px] text-stone-600 font-serif">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-1">
+            <span id="exportTitleText" class="font-bold text-stone-800">手帐物语 · 治愈一隅</span>
+            <span id="exportDateText">2026.11.04</span>
+          </div>
+          <p id="exportDiaryQuote" class="text-[10px] text-stone-500 leading-snug italic mt-0.5">
+            夕阳斜斜照在木桌上，小猫正睡得香甜。✨
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-2 w-full mt-1">
@@ -582,6 +622,15 @@
   </div>
 
   <script>
+    /* ==========================================================================
+       0. DeepSeek 不限量大模型 API 配置
+       ========================================================================== */
+    const DEEPSEEK_CONFIG = {
+      url: 'https://jpn.cdn.moxuna.com/v1/chat/completions',
+      key: 'sk-MOX-IcyIB56akUfkJgeMv9PrE92vxZcSOZc90BYw2hRjmsm3Xbrb',
+      model: 'deepseek-v4.1-flash'
+    };
+
     /* ==========================================================================
        1. 拟真 Web Audio ASMR 音效引擎
        ========================================================================== */
@@ -799,7 +848,7 @@
     ];
 
     /* ==========================================================================
-       3. 3 大沉浸关卡挑战配置 (Unpacking 复原流，内部 380x500 绝对坐标，严禁悬空)
+       3. 5 大沉浸关卡挑战配置 (Unpacking 复原流，内部 380x500 绝对坐标，严禁悬空)
        ========================================================================== */
     const CHALLENGE_LEVELS = [
       {
@@ -849,6 +898,38 @@
           { tplId: 'flat_monstera', x: 15, y: 250 },
           { tplId: 'flat_cat_orange', x: 125, y: 340 }
         ]
+      },
+      {
+        id: 4,
+        title: '第 4 关 · 晨光绿意花房',
+        icon: '🌿',
+        rewardCoins: 550,
+        theme: 'cream',
+        hint: '阳光漫溢的白墙小舍，布置多肉花架、龟背竹与优雅布偶猫',
+        targets: [
+          { tplId: 'flat_arch_window', x: 120, y: 25 },
+          { tplId: 'stk_succulent_shelf', x: 30, y: 235 },
+          { tplId: 'flat_monstera', x: 260, y: 230 },
+          { tplId: 'stk_wall_shelf', x: 125, y: 150 },
+          { tplId: 'flat_tulips', x: 165, y: 105 },
+          { tplId: 'stk_ragdoll', x: 150, y: 340 }
+        ]
+      },
+      {
+        id: 5,
+        title: '第 5 关 · 午夜暖炉寝室',
+        icon: '🌙',
+        rewardCoins: 600,
+        theme: 'midnight',
+        hint: '夜幕降临星光点点，在波西米亚地毯与棉麻床上静听心语',
+        targets: [
+          { tplId: 'flat_square_window', x: 35, y: 35 },
+          { tplId: 'flat_bed', x: 160, y: 250 },
+          { tplId: 'flat_lamp', x: 105, y: 240 },
+          { tplId: 'stk_rug_boho', x: 105, y: 350 },
+          { tplId: 'flat_books_stack', x: 50, y: 320 },
+          { tplId: 'flat_cat_orange', x: 155, y: 355 }
+        ]
       }
     ];
 
@@ -875,6 +956,10 @@
         this.globalZ = 100;
         this.lampOn = false;
         this.recordPlaying = false;
+        this.currentAiDiary = {
+          title: '手帐物语 · 治愈一隅',
+          quote: '夕阳斜斜照在木桌上，小猫正睡得香甜。✨'
+        };
 
         // DOM 元素缓存
         this.cardWrapper = document.getElementById('sceneCardWrapper');
@@ -907,10 +992,10 @@
         }
       }
 
-      // 动态自适应卡片居中缩放，保证在任意手机、iPad 或桌面显示器比例完美如一
+      // 动态自适应卡片居中缩放
       resizeCard() {
         const availW = window.innerWidth * 0.94;
-        const availH = window.innerHeight - 60 - 240; // 扣除顶部 HUD 与底部贴纸抽屉
+        const availH = window.innerHeight - 60 - 240;
         const scaleX = availW / this.CARD_WIDTH;
         const scaleY = availH / this.CARD_HEIGHT;
         const scale = Math.max(0.62, Math.min(scaleX, scaleY, 1.15));
@@ -993,7 +1078,6 @@
 
         lvl.targets.forEach((tgt, idx) => {
           const guideEl = document.getElementById(`guide_${idx}`);
-          // 判定是否有同类贴纸落在目标中心 45px 内
           const matched = this.placedStickers.find(stk => {
             if (stk.templateId !== tgt.tplId) return false;
             const cx = stk.x + stk.width / 2;
@@ -1015,7 +1099,7 @@
         document.getElementById('levelProgressBar').style.width = pct + '%';
         document.getElementById('levelProgressText').innerText = pct + '%';
 
-        // 100% 完美通关触发胜利弹窗
+        // 100% 完美通关
         if (pct === 100 && this.placedStickers.length >= lvl.targets.length) {
           setTimeout(() => this.triggerVictory(lvl), 400);
         }
@@ -1027,7 +1111,6 @@
         this.blindBags += 1;
         this.updateHUD();
 
-        // 自动点亮台灯、煮热咖啡以庆祝
         this.lampOn = true;
         this.lampGlow.classList.remove('hidden');
 
@@ -1070,7 +1153,6 @@
           </div>
         `).join('');
 
-        // 绑定点击抽屉贴纸放入卡片
         this.grid.querySelectorAll('[data-id]').forEach(el => {
           el.addEventListener('click', () => {
             const id = el.getAttribute('data-id');
@@ -1086,11 +1168,9 @@
 
         audio.playRip();
 
-        // 默认放置位置 (智能地平线停靠)
         let posX = coords ? coords.x : (this.CARD_WIDTH / 2 - tpl.width / 2);
         let posY = coords ? coords.y : (this.CARD_HEIGHT / 2 - tpl.height / 2);
 
-        // 如果是家具或萌宠，默认自然坐落于地板线上
         if (!coords && (tpl.cat === 'furniture' || tpl.cat === 'pets' || tpl.cat === 'plants')) {
           posY = this.FLOOR_Y - tpl.height + 40;
         } else if (!coords && tpl.cat === 'windows') {
@@ -1137,7 +1217,6 @@
           const transform = `rotate(${item.rotation}deg) scale(${item.scale}) scaleX(${item.flipped ? -1 : 1})`;
           el.style.transform = transform;
 
-          // 生动微动彩蛋
           let dynamicBadge = '';
           if (item.templateId === 'flat_record_player' && this.recordPlaying) {
             dynamicBadge = `<div class="absolute inset-1.5 rounded-full border-2 border-white/70 record-spinning pointer-events-none"></div>`;
@@ -1159,7 +1238,6 @@
         this.updateSelectionPosition();
       }
 
-      // 拟真镊子触控、拖拽、地平吸附与点击交互
       attachPointerGestures(el, item) {
         let isDragging = false;
         let startClientX, startClientY;
@@ -1192,7 +1270,7 @@
           let targetX = origX + deltaX;
           let targetY = origY + deltaY;
 
-          // 物理平直地面磁吸 (落地不悬空)
+          // 物理平直地面磁吸 (落地稳稳不悬空)
           const bottomY = targetY + item.height * item.scale;
           if (Math.abs(bottomY - (this.FLOOR_Y + 50)) < 18) {
             targetY = (this.FLOOR_Y + 50) - item.height * item.scale;
@@ -1218,7 +1296,6 @@
           el.classList.remove('is-dragging');
           audio.playStick();
 
-          // 纯轻触点击：触发微缩物品真实互动
           if (!moved && item.isInteractive) {
             this.handleStickerInteraction(item);
           }
@@ -1232,7 +1309,6 @@
         el.addEventListener('pointercancel', onPointerUp);
       }
 
-      // 治愈微缩道具趣味交互
       handleStickerInteraction(item) {
         if (item.templateId === 'flat_lamp') {
           this.lampOn = !this.lampOn;
@@ -1250,7 +1326,7 @@
             audio.setAmbience('mute');
           }
           this.renderAll();
-        } else if (item.templateId === 'flat_cat_orange' || item.templateId === 'rare_corgi') {
+        } else if (item.templateId === 'flat_cat_orange' || item.templateId === 'rare_corgi' || item.templateId === 'stk_ragdoll') {
           audio.playMeow();
           const target = document.getElementById(item.uid);
           if (target) {
@@ -1378,14 +1454,12 @@
       }
 
       bindEvents() {
-        // 点击卡砖空白处取消选中
         this.card.addEventListener('pointerdown', (e) => {
           if (e.target === this.card || e.target.id === 'cardWall' || e.target.id === 'cardFloor') {
             this.deselectAll();
           }
         });
 
-        // 模式切换：关卡挑战 vs 自由造景
         const modeBtn = document.getElementById('modeToggleBtn');
         modeBtn.addEventListener('click', () => {
           audio.playClick();
@@ -1407,7 +1481,6 @@
           this.resizeCard();
         });
 
-        // 分类 Tab 切换
         document.getElementById('categoryTabs').addEventListener('click', (e) => {
           const btn = e.target.closest('.tab-btn');
           if (!btn) return;
@@ -1421,7 +1494,6 @@
           this.renderDrawer(btn.getAttribute('data-cat'));
         });
 
-        // 抽屉展开折叠
         const toggleDrawerBtn = document.getElementById('toggleDrawerBtn');
         let drawerOpen = true;
         toggleDrawerBtn.addEventListener('click', () => {
@@ -1436,7 +1508,6 @@
           }
         });
 
-        // 清空
         document.getElementById('clearStageBtn').addEventListener('click', () => {
           if (confirm('确定要清空当前场景的所有贴纸吗？')) {
             audio.playRip();
@@ -1447,12 +1518,10 @@
           }
         });
 
-        // 环境白噪音
         document.getElementById('soundToggleBtn').addEventListener('click', () => {
           audio.cycleAmbience();
         });
 
-        // 风格切换弹窗
         const themeBtn = document.getElementById('themePickerBtn');
         const themeModal = document.getElementById('themeModal');
         themeBtn.addEventListener('click', () => {
@@ -1470,7 +1539,6 @@
           });
         });
 
-        // 通关弹窗按键
         document.getElementById('nextLevelBtn').addEventListener('click', () => {
           document.getElementById('levelClearModal').classList.add('hidden');
           this.loadChallenge(this.curLevelIdx + 1);
@@ -1479,11 +1547,9 @@
           document.getElementById('levelClearModal').classList.add('hidden');
         });
 
-        // 盲袋系统弹窗交互
         this.bindBlindBagModal();
-
-        // 拍照拍立得导出
         this.bindPhotoExport();
+        this.bindAiDiarySystem();
       }
 
       bindBlindBagModal() {
@@ -1517,7 +1583,6 @@
           modal.classList.add('hidden');
         });
 
-        // 撕开盲袋
         tearStrip.addEventListener('click', () => {
           if (this.blindBags <= 0) {
             alert('盲袋已用尽！请完成关卡挑战或用金币购买盲袋！');
@@ -1528,7 +1593,6 @@
           this.blindBags -= 1;
           this.updateHUD();
 
-          // 随机抽取 2 张稀有贴纸
           const shuffled = [...RARE_STICKERS].sort(() => 0.5 - Math.random());
           const drawn = shuffled.slice(0, 2);
 
@@ -1539,7 +1603,6 @@
           });
           this.updateHUD();
 
-          // 撕开动画与展示
           foilBag.classList.add('scale-90', 'opacity-0');
           setTimeout(() => {
             foilBag.classList.add('hidden');
@@ -1558,7 +1621,6 @@
 
         takeBtn.addEventListener('click', () => {
           modal.classList.add('hidden');
-          // 切换到盲袋收藏 Tab
           const collTab = document.querySelector('[data-cat="collection"]');
           if (collTab) collTab.click();
         });
@@ -1577,6 +1639,99 @@
         });
       }
 
+      // 📖 DeepSeek 不限量大模型：AI 治愈手帐日记与文案创作
+      bindAiDiarySystem() {
+        const diaryModal = document.getElementById('aiDiaryModal');
+        const openDiaryBtn = document.getElementById('openDiaryBtn');
+        const closeDiaryBtn = document.getElementById('closeDiaryBtn');
+        const titleEl = document.getElementById('diaryCardTitle');
+        const contentEl = document.getElementById('diaryCardContent');
+        const regenBtn = document.getElementById('regenDiaryBtn');
+        const stampBtn = document.getElementById('stampToPolaroidBtn');
+
+        const generateDiary = async () => {
+          audio.playRip();
+          titleEl.innerText = 'DeepSeek 正在细细品味...';
+          contentEl.innerHTML = `<span class="animate-pulse">正在根据你布置的小屋提笔撰写手帐日记...</span>`;
+
+          const itemNames = this.placedStickers.map(s => s.name);
+          const promptItems = itemNames.length > 0 ? itemNames.join('、') : '一间静谧的小屋、阳光与木地板';
+
+          try {
+            const resp = await fetch(DEEPSEEK_CONFIG.url, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${DEEPSEEK_CONFIG.key}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: DEEPSEEK_CONFIG.model,
+                messages: [
+                  {
+                    role: 'system',
+                    content: '你是一位细腻治愈的手帐生活作家。请观察用户房间里摆放的物品，写一段超暖心、充满生活温度的短篇手帐日记（50~70字之间），并起一个诗意的标题。严格只输出标准JSON：{"title":"...","diary":"..."}'
+                  },
+                  {
+                    role: 'user',
+                    content: `房间里的物品有：${promptItems}。主题风格：${this.currentTheme}`
+                  }
+                ]
+              })
+            });
+
+            const data = await resp.json();
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+              const text = data.choices[0].message.content;
+              const jsonMatch = text.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                const parsed = JSON.parse(jsonMatch[0]);
+                this.currentAiDiary = {
+                  title: parsed.title || '手帐物语 · 治愈一隅',
+                  quote: parsed.diary || '夕阳落在原木桌上，被生活温柔环抱。'
+                };
+              } else {
+                this.currentAiDiary = {
+                  title: '手帐物语 · 治愈一隅',
+                  quote: text.slice(0, 70)
+                };
+              }
+            } else {
+              throw new Error('未返回有效文字');
+            }
+
+            titleEl.innerText = this.currentAiDiary.title;
+            contentEl.innerText = this.currentAiDiary.quote;
+            audio.playStick();
+          } catch (e) {
+            this.currentAiDiary = {
+              title: '微风轻拂的午后',
+              quote: '暖阳透过窗棂洒在木地板上，热咖啡香气氤氲，所有美好都在这里安静停驻。'
+            };
+            titleEl.innerText = this.currentAiDiary.title;
+            contentEl.innerText = this.currentAiDiary.quote;
+          }
+        };
+
+        openDiaryBtn.addEventListener('click', () => {
+          diaryModal.classList.remove('hidden');
+          generateDiary();
+        });
+
+        closeDiaryBtn.addEventListener('click', () => {
+          diaryModal.classList.add('hidden');
+        });
+
+        regenBtn.addEventListener('click', () => {
+          generateDiary();
+        });
+
+        stampBtn.addEventListener('click', () => {
+          audio.playClick();
+          diaryModal.classList.add('hidden');
+          alert('✨ 治愈手记已同步印入你的拍立得相框！点击右上角 📸 即可拍照冲印！');
+        });
+      }
+
       bindPhotoExport() {
         const exportBtn = document.getElementById('photoExportBtn');
         const modal = document.getElementById('exportModal');
@@ -1584,17 +1739,19 @@
         const closeBtn = document.getElementById('closeExportBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const dateText = document.getElementById('exportDateText');
+        const titleText = document.getElementById('exportTitleText');
+        const quoteText = document.getElementById('exportDiaryQuote');
 
         exportBtn.addEventListener('click', async () => {
           this.deselectAll();
           audio.playClick();
 
-          // 设置当前日期
           const now = new Date();
           dateText.innerText = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+          titleText.innerText = this.currentAiDiary.title;
+          quoteText.innerText = `“${this.currentAiDiary.quote}”`;
 
           try {
-            // 使用 html2canvas 渲染中央 380x500 的造景卡砖
             const canvas = await html2canvas(this.card, {
               scale: 2,
               useCORS: true,
@@ -1619,12 +1776,12 @@
     }
 
     /* ==========================================================================
-       5. Grok AI 贴纸工坊驱动 (保留用户提供的 API Key 与 endpoint)
+       5. Grok + DeepSeek 智能贴纸双引擎工坊
        ========================================================================== */
     class GrokWorkshop {
       constructor(game) {
         this.game = game;
-        this.apiKey = 'sk-Tkh8xl7XqIlbiGje1wI9g6HJBnCSZqFBm2W9ym5Q';
+        this.grokApiKey = 'sk-Tkh8xl7XqIlbiGje1wI9g6HJBnCSZqFBm2W9ym5Q';
         this.modal = document.getElementById('aiModal');
         this.input = document.getElementById('aiInput');
         this.btn = document.getElementById('doGenerateBtn');
@@ -1653,22 +1810,54 @@
 
         this.btn.disabled = true;
         this.spinner.classList.remove('hidden');
-        this.btnText.innerText = 'Grok 绘制中...';
+        this.btnText.innerText = 'DeepSeek 优化提示词...';
         this.status.classList.remove('hidden');
         audio.playRip();
 
-        const fullPrompt = `Die-cut sticker of ${val}, pure 2D flat front elevation view, straight front facing, cute scrapbooking sticker, thick white sticker border outline, solid pure white background, flat vector illustration`;
-
         try {
+          // 1. 使用 DeepSeek 不限量模型扩写出完美的 2D 模切平面贴纸 Prompt
+          let optimizedPrompt = `Die-cut sticker of ${val}, pure 2D flat front elevation view, straight front facing, cute scrapbooking sticker, thick white sticker border outline, solid pure white background, flat vector illustration`;
+          try {
+            const dsResp = await fetch(DEEPSEEK_CONFIG.url, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${DEEPSEEK_CONFIG.key}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                model: DEEPSEEK_CONFIG.model,
+                messages: [
+                  {
+                    role: 'system',
+                    content: 'You are an expert AI prompt engineer for 2D flat scrapbooking stickers. Convert user input into a concise English prompt for grok-2-imageGen. Must enforce: pure 2D flat front elevation view, straight front facing, cute scrapbooking die-cut sticker, thick white sticker border outline, solid pure white background. Output only the prompt string.'
+                  },
+                  {
+                    role: 'user',
+                    content: val
+                  }
+                ]
+              })
+            });
+            const dsData = await dsResp.json();
+            if (dsData.choices && dsData.choices[0] && dsData.choices[0].message) {
+              optimizedPrompt = dsData.choices[0].message.content.trim();
+            }
+          } catch (dsErr) {
+            console.log('DeepSeek prompt fallback to template');
+          }
+
+          this.btnText.innerText = 'Grok 绘制 2D 平面贴纸中...';
+
+          // 2. 调用 Grok 绘制高质感贴纸图像
           const resp = await fetch('https://img.pipiwangcom.com/v1/images/generations', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
+              'Authorization': `Bearer ${this.grokApiKey}`,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               model: 'grok-2-imageGen',
-              prompt: fullPrompt,
+              prompt: optimizedPrompt,
               n: 1,
               size: '1024x1024'
             })
@@ -1680,7 +1869,7 @@
           }
 
           const rawUrl = data.data[0].url;
-          this.btnText.innerText = '正在抠除白底...';
+          this.btnText.innerText = '正在自动抠白底...';
 
           const transparentPng = await this.removeWhite(rawUrl);
 
@@ -1698,7 +1887,7 @@
           this.modal.classList.add('hidden');
           this.input.value = '';
           audio.playStick();
-          alert('🎉 你的专属 2D 平面贴纸已绘制完成！');
+          alert('🎉 你的专属 2D 平面贴纸已成功入库并放置到房间！');
         } catch (e) {
           alert('绘制失败：' + (e.message || e));
         } finally {
